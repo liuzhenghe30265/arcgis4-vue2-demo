@@ -1,11 +1,11 @@
-/*
+<!--
  * @Author: liuzhenghe
  * @Email: 15901450207@163.com
- * @Date: 2020-07-09 11:03:49
- * @Last Modified by: liuzhenghe
- * @Last Modified time: 2020-07-09 11:20:27
- * @Description: 初始化地图
- */
+ * @Date: 2020-07-28 17:44:30
+ * @LastEditors: liuzhenghe
+ * @LastEditTime: 2020-07-28 18:29:37
+ * @Descripttion: 初始化地图
+--> 
 
 <template>
   <div id="map-container"
@@ -20,6 +20,7 @@ export default {
   data() {
     return {
       map: '',
+      MapView: '',
       gisConstructor: {}, // gis 构造函数
       gisModules: ['esri/views/MapView', 'esri/Map']
     }
@@ -38,11 +39,11 @@ export default {
     init() {
       // 加载 css
       esriLoader.loadCss(
-        'https://js.arcgis.com/4.15/esri/themes/light/main.css'
+        'https://js.arcgis.com/4.8/esri/themes/light/main.css'
       )
       // 加载模块
       esriLoader.loadScript({
-        url: 'https://js.arcgis.com/4.15/init.js',
+        url: 'https://js.arcgis.com/4.8/init.js',
         dojoConfig: {
           async: false
         }
@@ -57,11 +58,12 @@ export default {
         let name = this.gisModules[k].split('/').pop()
         this.gisConstructor[name] = args[k]
       }
-      this.map = new this.gisConstructor.MapView({
+      this.map = new this.gisConstructor.Map({
+        basemap: 'osm'
+      })
+      this.MapView = new this.gisConstructor.MapView({
         container: 'map-container',
-        map: new this.gisConstructor.Map({
-          basemap: 'osm'
-        }),
+        map: this.map,
         center: [117.36599976909781, 39.1470299097626],
         zoom: 12
       })

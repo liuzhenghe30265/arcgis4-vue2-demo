@@ -8,7 +8,8 @@
 </template>
 
 <script>
-import InitMap from '@/components/InitMap'
+// import InitMap from '@/components/InitMap'
+import InitMap from '@/components/CustomSymbols'
 export default {
   name: 'App',
   components: {
