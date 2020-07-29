@@ -9,7 +9,8 @@
 
 <script>
 // import InitMap from '@/components/InitMap'
-import InitMap from '@/components/CustomSymbols'
+// import InitMap from '@/components/CustomSymbols'
+import InitMap from '@/components/TrackPlayback'
 export default {
   name: 'App',
   components: {
