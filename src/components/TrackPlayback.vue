@@ -3,7 +3,7 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-29 16:36:28
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-07-29 18:54:09
+ * @LastEditTime: 2020-08-03 18:41:29
  * @Descripttion: 轨迹回放
 --> 
 
@@ -13,11 +13,11 @@
     <div
       style="position:absolute;right:50px;top:50px;z-index:999;">
       <button
-        @click="showTrackPlayback(symbolData)">轨迹回放</button>
+        @click="showTrackPlayback(trackPlayback)">轨迹回放</button>
       <div v-if="trackPlayback.show"
         class="track-playback-control">
         <button
-          @click="startTrackPlaybackFun(symbolData)">开始</button>
+          @click="startTrackPlaybackFun(trackPlayback)">开始</button>
         <button
           @click="stopTrackPlaybackFun()">停止</button>
       </div>
@@ -27,35 +27,20 @@
 <script>
 import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
+// eslint-disable-next-line no-unused-vars
+import pathData from '@/mock/path.json'
 export default {
   name: 'InitMap',
   data() {
     return {
       trackPlayback: {
-        path: [[117.40101868999427, 39.13125244009548], [117.4090009440226, 39.130520066614935], [117.41131837261146, 39.136179118276075], [117.40342194927162, 39.13677828535539]],
+        path: [[117.40101868999427, 39.13125244009548], [117.4090009440226, 39.130520066614935], [117.41131837261146, 39.136179118276075], [117.40342194927162, 39.13677828535539]], // 路径
         moveLayer: null,// 运动图层
         pathLayer: null, // 轨迹图层
         movingInterval: null, // 运动定时任务
         stopPoint: [], // 暂停的位置
         show: false
       },
-      symbolData: [
-        {
-          x: 117.40101868999427,
-          y: 39.13125244009548
-        },
-        {
-          x: 117.4090009440226,
-          y: 39.130520066614935
-        },
-        {
-          x: 117.41131837261146,
-          y: 39.136179118276075
-        },
-        {
-          x: 117.40342194927162,
-          y: 39.13677828535539
-        }],
       map: '',
       MapView: '',
       gisConstructor: {}, // gis 构造函数
@@ -72,6 +57,12 @@ export default {
   },
   mounted() {
     this.init()
+    let result = pathData.data
+    let path = []
+    for (let i = 0; i < result.length; i++) {
+      path[i] = [result[i].x, result[i].y]
+    }
+    this.trackPlayback.path = path
   },
   methods: {
     /**
@@ -91,11 +82,14 @@ export default {
 
     /**
      * @name: 动态绘制轨迹
-     * @param {type} 
+     * @param {startIndex} 开始位置
+     * @param {stopIndex} 停止位置
+     * @param {path} 路径
+     * @param {moveLayer} 运动图层
+     * @param {graphic} 
      */
     drawMoving(startIndex, stopIndex, path, moveLayer, graphic) {
       let stopPoint = this.trackPlayback.stopPoint
-      console.log(stopPoint)
       let _this = this
       let endIndex = path.length
       if (stopIndex < endIndex) {
@@ -193,67 +187,63 @@ export default {
      * @param {type} 
      */
     drawTrackPlaybackFun(data) {
+      let pathData = data.path
       this.trackPlayback.pathLayer = new this.gisConstructor.GraphicsLayer()
-      for (let i = 0; i < data.length; i++) {
-        // 起点
-        let startPoint = data[0]
-        let point1 = {
-          type: "point",
-          longitude: startPoint.x,
-          latitude: startPoint.y
-        }
-        let startMarkerSymbol = {
-          type: "picture-marker",
-          url: require(`@/assets/images/ico02.png`),
-          width: '40px',
-          height: '40px'
-        }
-        let startPointGraphic = new this.gisConstructor.Graphic({
-          geometry: point1,
-          symbol: startMarkerSymbol
-        })
-        this.trackPlayback.pathLayer.add(startPointGraphic)
 
-        // 终点
-        let endPoint = data[data.length - 1]
-        let point2 = {
-          type: "point",
-          longitude: endPoint.x,
-          latitude: endPoint.y
-        }
-        let endMarkerSymbol = {
-          type: "picture-marker",
-          url: require(`@/assets/images/ico02.png`),
-          width: '40px',
-          height: '40px'
-        }
-        let endPointGraphic = new this.gisConstructor.Graphic({
-          geometry: point2,
-          symbol: endMarkerSymbol
-        })
-        this.trackPlayback.pathLayer.add(endPointGraphic)
-
-        // 路线
-        let polyline = {
-          type: 'polyline',
-          paths: this.trackPlayback.path
-        }
-        let polylineSymbol = {
-          type: 'simple-line',
-          color: [226, 119, 40],
-          width: 4
-        }
-        let polylineGraphic = new this.gisConstructor.Graphic({
-          geometry: polyline,
-          symbol: polylineSymbol
-        })
-        this.trackPlayback.moveLayer = new this.gisConstructor.GraphicsLayer({
-          id: 'moveLayer_' + i
-        })
-        this.map.add(this.trackPlayback.moveLayer)
-        this.trackPlayback.pathLayer.add(polylineGraphic)
-        // this.drawMoving(0, 1, this.trackPlayback.path, this.trackPlayback.moveLayer)
+      // 起点
+      let startPoint = pathData[0]
+      let point1 = {
+        type: "point",
+        longitude: startPoint[0],
+        latitude: startPoint[1]
       }
+      let startMarkerSymbol = {
+        type: "simple-marker"
+      }
+      let startPointGraphic = new this.gisConstructor.Graphic({
+        geometry: point1,
+        symbol: startMarkerSymbol
+      })
+      this.trackPlayback.pathLayer.add(startPointGraphic)
+
+      // 终点
+      let endPoint = pathData[pathData.length - 1]
+      let point2 = {
+        type: "point",
+        longitude: endPoint[0],
+        latitude: endPoint[1]
+      }
+      let endMarkerSymbol = {
+        type: "simple-marker"
+      }
+      let endPointGraphic = new this.gisConstructor.Graphic({
+        geometry: point2,
+        symbol: endMarkerSymbol
+      })
+      this.trackPlayback.pathLayer.add(endPointGraphic)
+
+      // 路线
+      let polyline = {
+        type: 'polyline',
+        paths: this.trackPlayback.path
+      }
+      let polylineSymbol = {
+        type: 'simple-line',
+        color: [226, 119, 40],
+        width: 2
+      }
+      let polylineGraphic = new this.gisConstructor.Graphic({
+        geometry: polyline,
+        symbol: polylineSymbol
+      })
+      console.log('polylineGraphic', polylineGraphic)
+      this.trackPlayback.pathLayer.add(polylineGraphic)
+
+      this.trackPlayback.moveLayer = new this.gisConstructor.GraphicsLayer({
+        // id: 'moveLayer_' + i
+      })
+      this.map.add(this.trackPlayback.moveLayer)
+
       this.map.add(this.trackPlayback.pathLayer)
     },
 
