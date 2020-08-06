@@ -1,9 +1,10 @@
+/* eslint-disable no-unused-vars */
 <!--
  * @Author: liuzhenghe
  * @Email: 15901450207@163.com
  * @Date: 2020-07-29 16:36:28
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-08-03 18:41:29
+ * @LastEditTime: 2020-08-06 14:22:27
  * @Descripttion: 轨迹回放
 --> 
 
@@ -27,7 +28,6 @@
 <script>
 import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
-// eslint-disable-next-line no-unused-vars
 import pathData from '@/mock/path.json'
 export default {
   name: 'InitMap',
@@ -38,7 +38,6 @@ export default {
         moveLayer: null,// 运动图层
         pathLayer: null, // 轨迹图层
         movingInterval: null, // 运动定时任务
-        stopPoint: [], // 暂停的位置
         show: false
       },
       map: '',
@@ -66,11 +65,19 @@ export default {
   },
   methods: {
     /**
+     * @name: 清除轨迹运动
+     */
+    clearTrackPlaybackFun() {
+      this.trackPlayback.moveLayer.graphics.removeAll()
+      this.trackPlayback.pathLayer.graphics.removeAll()
+      clearInterval(this.trackPlayback.movingInterval)
+    },
+
+    /**
      * @name: 停止运动
      */
     stopTrackPlaybackFun() {
       this.trackPlayback.movingInterval = clearInterval(this.trackPlayback.movingInterval)
-      console.log(this.trackPlayback.stopPoint)
     },
 
     /**
@@ -86,34 +93,16 @@ export default {
      * @param {stopIndex} 停止位置
      * @param {path} 路径
      * @param {moveLayer} 运动图层
-     * @param {graphic} 
+     * @param {graphic}
      */
     drawMoving(startIndex, stopIndex, path, moveLayer, graphic) {
-      let stopPoint = this.trackPlayback.stopPoint
-      let _this = this
       let endIndex = path.length
       if (stopIndex < endIndex) {
-        let startX
-        let startY
-        let stopX = path[stopIndex][0]
-        let stopY = path[stopIndex][1]
-        if (stopPoint.length > 0) {
-          startX = stopPoint[0]
-          startY = stopPoint[1]
-        } else {
-          startX = path[startIndex][0]
-          startY = path[startIndex][1]
-        }
-        // 斜率
-        let p = (stopY - startY) / (stopX - startX)
-        // 偏移量
-        let v = 0.00005
         if (!graphic) {
           let people = {
             type: 'point',
             longitude: path[startIndex][0],
             latitude: path[startIndex][1]
-
           }
           let peopleSimpleMark = {
             type: 'picture-marker',
@@ -127,41 +116,16 @@ export default {
           })
         }
         // 定时器
+        let index = 0
         this.trackPlayback.movingInterval = setInterval(() => {
-          // 终点下标
-          let stopNum = stopIndex
-          let newX
-          let newY
-          // 分别计算x，y轴上的偏移后的坐标
-          if (Math.abs(p) === Number.POSITIVE_INFINITY) {
-            // 斜率的绝对值为无穷大，斜率不存在，即x轴方向上的偏移量为0
-            stopY > startY ? newY = graphic.geometry + v : newY = graphic.geometry - v
-            newX = graphic.geometry.x
-          } else {
-            if (stopX < startX) {
-              newX = graphic.geometry.x - (1 / Math.sqrt(1 + p * p)) * v
-              newY = graphic.geometry.y - (p / Math.sqrt(1 + p * p)) * v
-            } else {
-              newX = graphic.geometry.x + (1 / Math.sqrt(1 + p * p)) * v
-              newY = graphic.geometry.y + (p / Math.sqrt(1 + p * p)) * v
-            }
-          }
-          // 判断是否开始进行下一段轨迹移动
-          if ((graphic.geometry.x - stopX) * (newX - stopX) < 0 || (graphic.geometry.y - stopY) * (newY - stopY) < 0) {
-            // 可以开始下一段轨迹移动
-            graphic.geometry.x = stopX
-            graphic.geometry.y = stopY
+          if (index === path.length) {
             clearInterval(this.trackPlayback.movingInterval)
-            startIndex++
-            stopIndex++
-            if (stopNum < endIndex) {
-              _this.drawMoving(startIndex, stopIndex, path, moveLayer, graphic)
-            }
           } else {
+            index += 1
             let people = {
               type: 'point',
-              longitude: newX,
-              latitude: newY
+              longitude: path[index - 1][0],
+              latitude: path[index - 1][1]
             }
             let peopleSimpleMark = {
               type: 'picture-marker',
@@ -175,9 +139,7 @@ export default {
             })
             moveLayer.graphics = [graphic]
           }
-          this.trackPlayback.stopPoint = [newX, newY]
         }, 50)
-
       }
 
     },
@@ -188,6 +150,7 @@ export default {
      */
     drawTrackPlaybackFun(data) {
       let pathData = data.path
+      // 路径图层
       this.trackPlayback.pathLayer = new this.gisConstructor.GraphicsLayer()
 
       // 起点
@@ -205,6 +168,9 @@ export default {
         symbol: startMarkerSymbol
       })
       this.trackPlayback.pathLayer.add(startPointGraphic)
+
+      // 定位到起点位置
+      this.updataCenterPoint(startPoint)
 
       // 终点
       let endPoint = pathData[pathData.length - 1]
@@ -236,15 +202,12 @@ export default {
         geometry: polyline,
         symbol: polylineSymbol
       })
-      console.log('polylineGraphic', polylineGraphic)
       this.trackPlayback.pathLayer.add(polylineGraphic)
-
-      this.trackPlayback.moveLayer = new this.gisConstructor.GraphicsLayer({
-        // id: 'moveLayer_' + i
-      })
-      this.map.add(this.trackPlayback.moveLayer)
-
       this.map.add(this.trackPlayback.pathLayer)
+
+      // 轨迹图层
+      this.trackPlayback.moveLayer = new this.gisConstructor.GraphicsLayer()
+      this.map.add(this.trackPlayback.moveLayer)
     },
 
     /**
@@ -252,7 +215,36 @@ export default {
      */
     showTrackPlayback(data) {
       this.trackPlayback.show = !this.trackPlayback.show
-      this.drawTrackPlaybackFun(data)
+      if (this.trackPlayback.show) {
+        this.drawTrackPlaybackFun(data)
+      } else {
+        this.clearTrackPlaybackFun()
+      }
+    },
+
+    /**
+     * @name: 切换地图中心点并缩放
+     * @param {point} 目标位置
+     * @return {zoom} 缩放等级
+     */
+    updataCenterPoint(point, zoom) {
+      let opts = {
+        duration: 500
+      }
+      let centerPoint = new this.gisConstructor.Point({
+        longitude: point[0],
+        latitude: point[1],
+        // spatialReference: {
+        //   wkid: 4490
+        // }
+      })
+      this.MapView.goTo(
+        {
+          target: centerPoint,
+          zoom: zoom || 14
+        },
+        opts
+      )
     },
 
     mapClickFun() {
