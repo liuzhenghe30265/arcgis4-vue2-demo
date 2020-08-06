@@ -1,25 +1,46 @@
 <template>
   <div id="app">
+    <div class="nav">
+      <router-link
+        v-for="item of routes"
+        :key="item.name"
+        :to="item.path">{{item.name}}
+      </router-link>
+    </div>
     <div class="map-main">
-      <init-map ref="InitMap">
-      </init-map>
+      <router-view />
     </div>
   </div>
 </template>
 
 <script>
-// import InitMap from '@/components/InitMap'
-// import InitMap from '@/components/CustomSymbols'
-import InitMap from '@/components/TrackPlayback'
 export default {
   name: 'App',
-  components: {
-    InitMap
+  components: {},
+  data() {
+    return {
+      routes: []
+    }
+  },
+  mounted() {
+    this.routes = this.$router.options.routes
   }
 }
 </script>
 
 <style lang="scss">
+.nav {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 999;
+  a {
+    color: #333;
+    &.router-link-exact-active {
+      color: red;
+    }
+  }
+}
 .map-main {
   position: fixed;
   width: 100%;
