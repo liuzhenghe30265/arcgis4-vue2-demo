@@ -3,7 +3,7 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-28 17:44:30
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-07-28 18:29:37
+ * @LastEditTime: 2020-08-07 18:24:14
  * @Descripttion: 初始化地图
 --> 
 
@@ -22,7 +22,12 @@ export default {
       map: '',
       MapView: '',
       gisConstructor: {}, // gis 构造函数
-      gisModules: ['esri/views/MapView', 'esri/Map']
+      gisModules: [
+        'esri/geometry/SpatialReference',
+        'esri/geometry/Extent',
+        'esri/views/MapView',
+        'esri/Map'
+      ]
     }
   },
   mounted() {
@@ -67,6 +72,18 @@ export default {
         center: [117.36599976909781, 39.1470299097626],
         zoom: 12
       })
+
+      // let SpatialReference = new this.gisConstructor.SpatialReference({
+      //   'wkid': '4490'
+      // })
+      // this.MapView.extent = new this.gisConstructor.Extent({
+      //   xmin: 117.30877314946616,
+      //   ymin: 39.075945506775604,
+      //   xmax: 117.32666350299334,
+      //   ymax: 39.086007488321194,
+      //   spatialReference: SpatialReference
+      // })
+
     }
   }
 }

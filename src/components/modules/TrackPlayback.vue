@@ -4,7 +4,7 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-29 16:36:28
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-08-06 14:22:27
+ * @LastEditTime: 2020-08-07 18:16:04
  * @Descripttion: 轨迹回放
 --> 
 
@@ -170,7 +170,7 @@ export default {
       this.trackPlayback.pathLayer.add(startPointGraphic)
 
       // 定位到起点位置
-      this.updataCenterPoint(startPoint)
+      this.updataCenterPoint(startPoint, 16)
 
       // 终点
       let endPoint = pathData[pathData.length - 1]
@@ -283,7 +283,7 @@ export default {
         container: 'map-container',
         map: this.map,
         center: [117.36599976909781, 39.1470299097626],
-        zoom: 13
+        zoom: 15
       })
     }
   }
