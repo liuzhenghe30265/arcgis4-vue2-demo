@@ -257,11 +257,11 @@ export default {
     init() {
       // 加载 css
       esriLoader.loadCss(
-        'https://js.arcgis.com/4.8/esri/themes/light/main.css'
+        'https://js.arcgis.com/4.16/esri/themes/light/main.css'
       )
       // 加载模块
       esriLoader.loadScript({
-        url: 'https://js.arcgis.com/4.8/init.js',
+        url: 'https://js.arcgis.com/4.16/init.js',
         dojoConfig: {
           async: false
         }

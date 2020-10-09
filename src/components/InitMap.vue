@@ -3,13 +3,13 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-28 17:44:30
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-08-07 18:24:14
+ * @LastEditTime: 2020-10-09 12:00:22
  * @Descripttion: 初始化地图
 --> 
 
 <template>
   <div id="map-container"
-    style="width:100%;height:100%;">
+       style="width:100%;height:100%;">
   </div>
 </template>
 <script>
@@ -34,21 +34,26 @@ export default {
     this.init()
   },
   methods: {
+    /**
+     * @name: 地图点击
+     */
     mapClickFun() {
-      this.map.on('click', e => {
+      this.MapView.on('click', e => {
         console.log(e)
       })
     },
 
-    // 初始化地图
+    /**
+     * @name: 初始化地图
+     */
     init() {
       // 加载 css
       esriLoader.loadCss(
-        'https://js.arcgis.com/4.8/esri/themes/light/main.css'
+        'https://js.arcgis.com/4.16/esri/themes/light/main.css'
       )
       // 加载模块
       esriLoader.loadScript({
-        url: 'https://js.arcgis.com/4.8/init.js',
+        url: 'https://js.arcgis.com/4.16/init.js',
         dojoConfig: {
           async: false
         }
@@ -69,7 +74,7 @@ export default {
       this.MapView = new this.gisConstructor.MapView({
         container: 'map-container',
         map: this.map,
-        center: [117.36599976909781, 39.1470299097626],
+        center: [116.395645038, 39.9299857781],
         zoom: 12
       })
 
@@ -77,10 +82,10 @@ export default {
       //   'wkid': '4490'
       // })
       // this.MapView.extent = new this.gisConstructor.Extent({
-      //   xmin: 117.30877314946616,
-      //   ymin: 39.075945506775604,
-      //   xmax: 117.32666350299334,
-      //   ymax: 39.086007488321194,
+      //   xmin: 117.09722430138682,
+      //   ymin: 38.988772821718655,
+      //   xmax: 117.72502101428843,
+      //   ymax: 39.30561397526118,
       //   spatialReference: SpatialReference
       // })
 

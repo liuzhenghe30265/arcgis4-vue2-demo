@@ -3,24 +3,30 @@ import VueRouter from 'vue-router'
 import InitMap from '@/components/InitMap'
 import CustomSymbols from '@/components/modules/CustomSymbols'
 import TrackPlayback from '@/components/modules/TrackPlayback'
+import HighLight from '@/components/modules/HighLight'
 
 Vue.use(VueRouter)
 
 const routes = [{
     path: '/',
     name: '初始化',
-    component: InitMap
+    component: InitMap,
   },
   {
     path: '/CustomSymbols',
     name: '自定义标注',
-    component: CustomSymbols
+    component: CustomSymbols,
   },
   {
     path: '/TrackPlayback',
     name: '轨迹回放',
-    component: TrackPlayback
-  }
+    component: TrackPlayback,
+  },
+  {
+    path: '/HighLight',
+    name: '高亮',
+    component: HighLight,
+  },
 ]
 
 const router = new VueRouter({

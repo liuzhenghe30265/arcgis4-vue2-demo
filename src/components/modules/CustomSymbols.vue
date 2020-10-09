@@ -3,19 +3,19 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-28 17:46:26
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-07-29 16:32:42
+ * @LastEditTime: 2020-10-09 16:58:44
  * @Descripttion: 自定义标注
 --> 
 
 <template>
   <div id="map-container"
-    style="width:100%;height:100%;">
+       style="width:100%;height:100%;">
     <div
-      style="position:absolute;right:50px;top:50px;z-index:999;">
+         style="position:absolute;right:50px;top:50px;z-index:999;">
       <button
-        @click="addCustomSymbols(symbolData)">自定义标注</button>
+              @click="addCustomSymbols(symbolData)">自定义标注</button>
       <button
-        @click="clearCustomSymbols()">清除标注</button>
+              @click="clearCustomSymbols()">清除标注</button>
     </div>
   </div>
 </template>
@@ -23,26 +23,42 @@
 import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
 export default {
-  name: 'InitMap',
+  name: 'CustomSymbols',
   data() {
     return {
-      customSymbolsLayer: '',//自定义标注图层
+      customSymbolsLayer: '',// 自定义标注图层
       symbolData: [
         {
-          address: '昆俞北路明旭社区明盛园4号楼',
-          x: 117.29548,
-          y: 39.16232
+          address: 'marker1',
+          x: 116.40182752977934,
+          y: 39.92476619935702,
+          type: 1,
         },
         {
-          address: '津北公路',
-          x: 117.432727,
-          y: 39.080622
+          address: 'marker2',
+          x: 116.42764915596571,
+          y: 39.949683921105375,
+          type: 2,
         },
         {
-          address: '华明街弘顺道金泰丽湾嘉园7号楼',
-          x: 117.365064,
-          y: 39.163788
-        }],
+          address: 'marker3',
+          x: 116.48107607733336,
+          y: 39.88376327014636,
+          type: 2,
+        },
+        {
+          address: 'marker4',
+          x: 116.34883914958563,
+          y: 39.96384062028598,
+          type: 3,
+        },
+        {
+          address: 'marker5',
+          x: 116.3174412108573,
+          y: 39.86192606545161,
+          type: 3,
+        },
+      ],
       map: '',
       MapView: '',
       gisConstructor: {}, // gis 构造函数
@@ -74,10 +90,17 @@ export default {
      */
     addCustomSymbols(data) {
       this.clearCustomSymbols()
-      let img = require(`@/assets/images/ico.png`)
+      let icon = ''
       let graphics = []
       for (let i = 0; i < data.length; i++) {
         if (data[i].x && data[i].y) {
+          if (data[i].type === 1) {
+            icon = require('@/assets/images/ico01.png')
+          } else if (data[i].type === 2) {
+            icon = require('@/assets/images/ico02.png')
+          } else {
+            icon = require('@/assets/images/ico03.png')
+          }
           let point = {
             type: "point", // autocasts as new Point()
             longitude: data[i].x,
@@ -97,7 +120,7 @@ export default {
           // 图片标注
           let pictureMarkerSymbol = {
             type: "picture-marker",
-            url: img,
+            url: icon,
             width: '40px',
             height: '40px'
           }
@@ -125,21 +148,26 @@ export default {
       this.MapView.graphics.addMany(graphics)
     },
 
+    /**
+     * @name: 地图点击
+     */
     mapClickFun() {
-      this.map.on('click', e => {
+      this.MapView.on('click', e => {
         console.log(e)
       })
     },
 
-    // 初始化地图
+    /**
+     * @name: 初始化地图
+     */
     init() {
       // 加载 css
       esriLoader.loadCss(
-        'https://js.arcgis.com/4.8/esri/themes/light/main.css'
+        'https://js.arcgis.com/4.16/esri/themes/light/main.css'
       )
       // 加载模块
       esriLoader.loadScript({
-        url: 'https://js.arcgis.com/4.8/init.js',
+        url: 'https://js.arcgis.com/4.16/init.js',
         dojoConfig: {
           async: false
         }
@@ -160,7 +188,7 @@ export default {
       this.MapView = new this.gisConstructor.MapView({
         container: 'map-container',
         map: this.map,
-        center: [117.36599976909781, 39.1470299097626],
+        center: [116.395645038, 39.9299857781],
         zoom: 12
       })
     }
