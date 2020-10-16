@@ -4,6 +4,7 @@ import InitMap from '@/components/InitMap'
 import CustomSymbols from '@/components/modules/CustomSymbols'
 import TrackPlayback from '@/components/modules/TrackPlayback'
 import HighLight from '@/components/modules/HighLight'
+import MapServer from '@/components/modules/MapServer'
 
 Vue.use(VueRouter)
 
@@ -26,6 +27,11 @@ const routes = [{
     path: '/HighLight',
     name: '高亮',
     component: HighLight,
+  },
+  {
+    path: '/MapServer',
+    name: 'MapServer',
+    component: MapServer,
   },
 ]
 
