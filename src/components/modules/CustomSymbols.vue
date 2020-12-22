@@ -3,7 +3,7 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-28 17:46:26
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-10-09 16:58:44
+ * @LastEditTime: 2020-12-22 18:20:19
  * @Descripttion: 自定义标注
 --> 
 
@@ -13,7 +13,7 @@
     <div
          style="position:absolute;right:50px;top:50px;z-index:999;">
       <button
-              @click="addCustomSymbols(symbolData)">自定义标注</button>
+              @click="addCustomSymbols()">自定义标注</button>
       <button
               @click="clearCustomSymbols()">清除标注</button>
     </div>
@@ -27,49 +27,18 @@ export default {
   data() {
     return {
       customSymbolsLayer: '',// 自定义标注图层
-      symbolData: [
-        {
-          address: 'marker1',
-          x: 116.40182752977934,
-          y: 39.92476619935702,
-          type: 1,
-        },
-        {
-          address: 'marker2',
-          x: 116.42764915596571,
-          y: 39.949683921105375,
-          type: 2,
-        },
-        {
-          address: 'marker3',
-          x: 116.48107607733336,
-          y: 39.88376327014636,
-          type: 2,
-        },
-        {
-          address: 'marker4',
-          x: 116.34883914958563,
-          y: 39.96384062028598,
-          type: 3,
-        },
-        {
-          address: 'marker5',
-          x: 116.3174412108573,
-          y: 39.86192606545161,
-          type: 3,
-        },
-      ],
       map: '',
       MapView: '',
       gisConstructor: {}, // gis 构造函数
       gisModules: [
-        'esri/Map',
-        'esri/views/MapView',
         'esri/Graphic',
         'esri/symbols/TextSymbol',
         'esri/layers/GraphicsLayer',
         "esri/geometry/Point",
-        'esri/geometry/SpatialReference'
+        'esri/geometry/SpatialReference',
+        'esri/geometry/Extent',
+        'esri/views/MapView',
+        'esri/Map',
       ]
     }
   },
@@ -79,17 +48,48 @@ export default {
   methods: {
     /**
      * @name: 清除标注
-     * @param {type} 
      */
     clearCustomSymbols() {
       this.MapView.graphics.removeAll()
     },
+
     /**
      * @name: 添加自定义标注
-     * @param {type} 
      */
-    addCustomSymbols(data) {
+    addCustomSymbols() {
       this.clearCustomSymbols()
+      let data = [
+        {
+          text: 'marker1',
+          x: -13043465.062410325,
+          y: 3857375.365345625,
+          type: 1,
+        },
+        {
+          text: 'marker2',
+          x: -13041492.031617718,
+          y: 3857031.398718342,
+          type: 2,
+        },
+        {
+          text: 'marker3',
+          x: -13041042.964076541,
+          y: 3855808.4062657813,
+          type: 2,
+        },
+        {
+          text: 'marker4',
+          x: -13044606.840520333,
+          y: 3854317.8842142224,
+          type: 3,
+        },
+        {
+          text: 'marker5',
+          x: -13043035.104126222,
+          y: 3855120.4730112157,
+          type: 3,
+        },
+      ]
       let icon = ''
       let graphics = []
       for (let i = 0; i < data.length; i++) {
@@ -133,7 +133,7 @@ export default {
 
           // 文字标注
           let textsymbol = new this.gisConstructor.TextSymbol({
-            text: data[i].address,
+            text: data[i].text,
             color: '#333',
             yoffset: '20px'
           })
@@ -145,6 +145,7 @@ export default {
           graphics.push(textGraphic)
         }
       }
+      console.log(graphics)
       this.MapView.graphics.addMany(graphics)
     },
 
@@ -179,19 +180,29 @@ export default {
     initMap(args) {
       // 将 ArcGIS 的每个功能模块都存放到 gisConstructor 中
       for (let k in args) {
-        let name = this.gisModules[k].split('/').pop()
+        let name = this.gisModules[k].split("/").pop()
         this.gisConstructor[name] = args[k]
       }
+
       this.map = new this.gisConstructor.Map({
-        basemap: 'osm'
+        basemap: "osm",
       })
       this.MapView = new this.gisConstructor.MapView({
-        container: 'map-container',
+        container: "map-container",
         map: this.map,
-        center: [116.395645038, 39.9299857781],
-        zoom: 12
+        // center: [116.395645038, 39.9299857781],
+        // zoom: 12
       })
-    }
+
+      // 设置初始化范围
+      let extent = {
+        xmin: -117.1839455,
+        ymin: 32.68087830000002,
+        xmax: -117.15035189999998,
+        ymax: 32.732100979999984,
+      }
+      this.MapView.extent = new this.gisConstructor.Extent(extent, this.MapView.spatialReference)
+    },
   }
 }
 </script>
