@@ -3,7 +3,7 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-28 17:46:26
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-12-22 18:20:19
+ * @LastEditTime: 2020-12-24 17:23:25
  * @Descripttion: 自定义标注
 --> 
 
@@ -33,6 +33,7 @@ export default {
       gisModules: [
         'esri/Graphic',
         'esri/symbols/TextSymbol',
+        'esri/layers/FeatureLayer',
         'esri/layers/GraphicsLayer',
         "esri/geometry/Point",
         'esri/geometry/SpatialReference',
@@ -50,7 +51,11 @@ export default {
      * @name: 清除标注
      */
     clearCustomSymbols() {
-      this.MapView.graphics.removeAll()
+      // this.MapView.graphics.removeAll()
+      this.map.findLayerById('自定义标注图层') ? (() => {
+        let layer = this.map.findLayerById('自定义标注图层')
+        layer.removeAll()
+      })() : void (0)
     },
 
     /**
@@ -58,103 +63,223 @@ export default {
      */
     addCustomSymbols() {
       this.clearCustomSymbols()
-      let data = [
+      let layer = this.map.findLayerById('自定义标注图层')
+      // 添加点
+      let pointList = [
         {
           text: 'marker1',
-          x: -13043465.062410325,
-          y: 3857375.365345625,
+          x: -117.17144023442182,
+          y: 32.713787459203424,
           type: 1,
         },
         {
           text: 'marker2',
-          x: -13041492.031617718,
-          y: 3857031.398718342,
+          x: -117.15371619725147,
+          y: 32.711187634893705,
           type: 2,
         },
         {
           text: 'marker3',
-          x: -13041042.964076541,
-          y: 3855808.4062657813,
+          x: -117.14968215489304,
+          y: 32.70194320151179,
           type: 2,
         },
         {
           text: 'marker4',
-          x: -13044606.840520333,
-          y: 3854317.8842142224,
+          x: -117.18169700169476,
+          y: 32.690675253443224,
           type: 3,
         },
         {
           text: 'marker5',
-          x: -13043035.104126222,
-          y: 3855120.4730112157,
+          x: -117.1675778534404,
+          y: 32.69674278684837,
           type: 3,
         },
       ]
       let icon = ''
-      let graphics = []
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].x && data[i].y) {
-          if (data[i].type === 1) {
-            icon = require('@/assets/images/ico01.png')
-          } else if (data[i].type === 2) {
-            icon = require('@/assets/images/ico02.png')
-          } else {
-            icon = require('@/assets/images/ico03.png')
-          }
-          let point = {
-            type: "point", // autocasts as new Point()
-            longitude: data[i].x,
-            latitude: data[i].y
-          }
-          // 样式标注
-          // let markerSymbol = {
-          //   type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-          //   color: [226, 119, 40],
-          //   outline: {
-          //     // autocasts as new SimpleLineSymbol()
-          //     color: [255, 255, 255],
-          //     width: 2
-          //   }
-          // }
+      pointList.forEach(item => {
+        if (item.type === 1) {
+          icon = require('@/assets/images/ico01.png')
+        } else if (item.type === 2) {
+          icon = require('@/assets/images/ico02.png')
+        } else {
+          icon = require('@/assets/images/ico03.png')
+        }
+        let point = {
+          type: "point",
+          longitude: item.x,
+          latitude: item.y,
+          // spatialReference: this.MapView.spatialReference
+        }
+        let simpleMarker = {
+          type: "simple-marker",
+          color: [226, 119, 40],
+          outline: {
+            color: [255, 255, 255],
+            width: 2
+          },
+          // spatialReference: this.MapView.spatialReference
+        }
+        let simpleMarkerGraphic = new this.gisConstructor.Graphic({
+          geometry: point,
+          attributes: item,
+          symbol: simpleMarker,
+          // spatialReference: this.MapView.spatialReference
+        })
+        layer.add(simpleMarkerGraphic)
 
-          // 图片标注
-          let pictureMarkerSymbol = {
-            type: "picture-marker",
-            url: icon,
-            width: '40px',
-            height: '40px'
-          }
-          let pointGraphic = new this.gisConstructor.Graphic({
-            geometry: point,
-            symbol: pictureMarkerSymbol,
-            attributes: data[i]
-          })
-          graphics.push(pointGraphic)
+        let pictureMarker = {
+          type: "picture-marker",
+          url: icon,
+          width: "32px",
+          height: "32px",
+          xoffset: "0",
+          yoffset: "25px"
+        }
+        let pictureGraphic = new this.gisConstructor.Graphic({
+          geometry: point,
+          attributes: item,
+          symbol: pictureMarker,
+          // spatialReference: this.MapView.spatialReference
+        })
+        layer.add(pictureGraphic)
 
-          // 文字标注
-          let textsymbol = new this.gisConstructor.TextSymbol({
-            text: data[i].text,
-            color: '#333',
-            yoffset: '20px'
-          })
-          let textGraphic = new this.gisConstructor.Graphic({
-            geometry: point,
-            symbol: textsymbol,
-            attributes: data[i]
-          })
-          graphics.push(textGraphic)
+        let textSymbol = {
+          type: "text",
+          color: "white",
+          haloColor: "black",
+          haloSize: "1px",
+          text: item.text,
+          xoffset: 0,
+          yoffset: -25,
+          font: {
+            size: 12,
+            family: "Josefin Slab",
+            weight: "bold"
+          }
+        }
+        let textGraphic = new this.gisConstructor.Graphic({
+          geometry: point,
+          attributes: item,
+          symbol: textSymbol,
+          // spatialReference: this.MapView.spatialReference
+        })
+        layer.add(textGraphic)
+
+        // layer.addMany([]) // 多个点，Array 类型
+      })
+
+      // 添加线
+      let polyline = {
+        type: "polyline",
+        paths: [
+          [-117.1977902557841, 32.71447351131593],
+          [-117.21907626652629, 32.708479404000755],
+          [-117.22714435124307, 32.69425081410677],
+          [-117.22208034062295, 32.683632063618255],
+          [-117.17178355717574, 32.678358337302186],
+          [-117.16543208622849, 32.6827651710909],
+        ]
+      }
+      let polylineSymbol = {
+        type: "simple-line",
+        color: [255, 0, 0],
+        width: 4
+      }
+      let polylineAtt = {
+        Name: "Keystone Pipeline",
+        Owner: "TransCanada",
+        Length: "3,456 km"
+      }
+      let polylineGraphic = new this.gisConstructor.Graphic({
+        geometry: polyline,
+        symbol: polylineSymbol,
+        attributes: polylineAtt,
+        // 高亮提示效果
+        popupTemplate: {
+          title: "{Name}",
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "Name"
+                },
+                {
+                  fieldName: "Owner"
+                },
+                {
+                  fieldName: "Length"
+                }
+              ]
+            }
+          ]
+        }
+      })
+      layer.add(polylineGraphic)
+
+      // 添加面
+      let polygon = {
+        type: "polygon",
+        rings: [
+          [-117.1880055572978, 32.72339170858406],
+          [-117.17538844609174, 32.719997843890354],
+          [-117.18723308110151, 32.71299307648107],
+          [-117.1880055572978, 32.72339170858406]
+        ]
+      }
+      let polygonSymbol = {
+        type: "simple-fill",
+        color: [227, 139, 79, 0.8],
+        outline: {
+          color: [255, 255, 255],
+          width: 4
         }
       }
-      console.log(graphics)
-      this.MapView.graphics.addMany(graphics)
+      let polygonAtt = {
+        Name: "Keystone Polygon",
+        Owner: "TransCanada",
+        Area: "50²km"
+      }
+      let polygonGraphic = new this.gisConstructor.Graphic({
+        geometry: polygon,
+        symbol: polygonSymbol,
+        attributes: polygonAtt,
+        // 高亮提示效果
+        popupTemplate: {
+          title: "{Name}",
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "Name"
+                },
+                {
+                  fieldName: "Owner"
+                },
+                {
+                  fieldName: "Area"
+                }
+              ]
+            }
+          ]
+        }
+      })
+      layer.add(polygonGraphic)
     },
 
     /**
      * @name: 地图点击
      */
     mapClickFun() {
-      this.MapView.on('click', e => {
-        console.log(e)
+      this.MapView.on('click', event => {
+        console.log(event)
+        // 自定义图层标注点击
+        this.MapView.hitTest(event).then(response => {
+          console.log(response)
+        })
       })
     },
 
@@ -202,6 +327,14 @@ export default {
         ymax: 32.732100979999984,
       }
       this.MapView.extent = new this.gisConstructor.Extent(extent, this.MapView.spatialReference)
+
+      let layer = new this.gisConstructor.GraphicsLayer({
+        id: '自定义标注图层',
+        title: '自定义标注图层',
+        spatialReference: this.MapView.spatialReference
+      })
+      this.map.layers.add(layer)
+
     },
   }
 }
