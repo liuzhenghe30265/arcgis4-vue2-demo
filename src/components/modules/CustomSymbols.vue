@@ -3,7 +3,7 @@
  * @Email: 15901450207@163.com
  * @Date: 2020-07-28 17:46:26
  * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-12-24 17:23:25
+ * @LastEditTime: 2020-12-25 17:53:06
  * @Descripttion: 自定义标注
 --> 
 
@@ -271,14 +271,20 @@ export default {
     },
 
     /**
-     * @name: 地图点击
+     * @name: 操作地图
      */
-    mapClickFun() {
+    operatingMapFun() {
       this.MapView.on('click', event => {
         console.log(event)
-        // 自定义图层标注点击
         this.MapView.hitTest(event).then(response => {
           console.log(response)
+        })
+      })
+      this.MapView.on('pointer-move', event => {
+        this.MapView.hitTest(event).then(response => {
+          if (response.results && response.results.length > 0) {
+            console.log(response.results[0])
+          }
         })
       })
     },
@@ -300,7 +306,7 @@ export default {
       })
       loadModules(this.gisModules)
         .then(this.initMap)
-        .then(this.mapClickFun)
+        .then(this.operatingMapFun)
     },
     initMap(args) {
       // 将 ArcGIS 的每个功能模块都存放到 gisConstructor 中

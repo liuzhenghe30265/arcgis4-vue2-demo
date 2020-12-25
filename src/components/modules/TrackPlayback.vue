@@ -282,7 +282,7 @@ export default {
       this.MapView = new this.gisConstructor.MapView({
         container: 'map-container',
         map: this.map,
-        center: [117.36599976909781, 39.1470299097626],
+        center: [-117.15693484806934, 32.70501274849578],
         zoom: 15
       })
     }
