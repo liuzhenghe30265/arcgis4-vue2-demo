@@ -5,15 +5,6 @@
       id="map-container"
       style="width:100%;height:100%;">
     </div>
-    <!-- <div
-      class="nav">
-      <router-link
-        v-for="item of routes"
-        :key="item.name"
-        :to="item.path">
-        {{item.name}}
-      </router-link>
-    </div> -->
     <div
       style="position:absolute;right:50px;top:50px;z-index:999;">
       <button
@@ -61,7 +52,86 @@ export default {
   mounted () {
     this.routes = this.$router.options.routes
     this.$Map = new ArcGIS()
-    this.$Map.init('map-container', '3D')
+
+    const option = {
+      el: 'map-container',
+      type: '3D',
+      // 如果设置了 extent，center 和 zoom 失效
+      // extent: {
+      //   xmin: -117.1839455,
+      //   ymin: 32.68087830000002,
+      //   xmax: -117.15035189999998,
+      //   ymax: 32.732100979999984,
+      // },
+      extent: {
+        xmin: -178.217598382,
+        ymin: 18.921786345999976,
+        xmax: -66.96927110500002,
+        ymax: 71.40623554799998,
+      },
+      // center: [-74, 41.5],
+      // zoom: 10,
+      // 初始化地图时要加载的所有图层服务服务
+      initLayers: [
+        {
+          id: '自定义标注图层',
+          title: '自定义标注图层',
+          visible: true,
+          layerType: 'GraphicsLayer'
+        },
+        {
+          portalItem: { id: 'f430d25bf03744edbb1579e18c4bf6b8' },
+          layerId: 'HighLightLayer',
+          id: 'HighLightLayer',
+          title: '高亮',
+          outFields: ['*'],
+          visible: false,
+          layerType: 'FeatureLayer',
+        },
+        {
+          url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/SF311/MapServer',
+          id: 'SF311',
+          visible: false,
+          layerType: 'MapImageLayer',
+        },
+        {
+          url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/DamageAssessment/MapServer',
+          id: 'DamageAssessment',
+          visible: false,
+          layerType: 'MapImageLayer',
+          zIndex: 2
+        },
+        {
+          url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer',
+          id: 'USA',
+          layerType: 'MapImageLayer',
+          // 有子图层
+          sublayers: [
+            {
+              id: 0,
+              title: 'Cities',
+              visible: false
+            },
+            {
+              id: 1,
+              title: 'Highways',
+              visible: false
+            },
+            {
+              id: 2,
+              title: 'States',
+              visible: false
+            },
+            {
+              id: 3,
+              title: 'Counties',
+              visible: false
+            },
+          ],
+        }
+      ]
+    }
+    this.$Map.init(option)
   },
   methods: {
     clearCustomSymbols () {

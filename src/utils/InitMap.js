@@ -3,8 +3,7 @@ import ArcgisModules from '@/utils/ArcgisModules'
 import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
 import {
-  dependentFile,
-  // extent
+  dependentFile
 } from '@/config/MapOptions'
 
 class ArcGIS {
@@ -15,7 +14,7 @@ class ArcGIS {
   }
 
   // 初始化
-  init ($el, type) {
+  init (option) {
     esriLoader.loadCss(dependentFile.css)
     esriLoader.loadScript({
       url: dependentFile.script,
@@ -32,20 +31,24 @@ class ArcGIS {
         this.Map = new this.gisConstructor.Map({
           basemap: 'osm'
         })
-        if (type && type === '3D') {
+        if (option.type && option.type === '3D') {
           this.MapView = new this.gisConstructor.SceneView({
-            container: $el, // Reference to the DOM node that will contain the view
+            container: option.el, // Reference to the DOM node that will contain the view
             map: this.Map, // References the map object created in step 3
+            center: option.center,
+            zoom: option.zoom
           })
         }
         else {
           this.MapView = new this.gisConstructor.MapView({
-            container: $el,
+            container: option.el,
             map: this.Map
           })
         }
         // 设置视角区域
-        // this.MapView.extent = new this.gisConstructor.Extent(extent, this.MapView.spatialReference)
+        if (option.extent) {
+          this.MapView.extent = new this.gisConstructor.Extent(option.extent, this.MapView.spatialReference)
+        }
 
         // 点击事件
         this.MapView.on('click', event => {
@@ -56,31 +59,152 @@ class ArcGIS {
 
           // 点击标注
           this.MapView.hitTest(event).then(response => {
-            console.log('自定义标注', response)
-            store.dispatch('map/getMapMarkerClickData', response)
+            if (response.results && response.results.length > 0) {
+              console.log('自定义标注', response)
+              store.dispatch('map/getMapMarkerClickData', response)
+            }
           })
         })
 
-        // 添加一个图层，存放自定义标注
-        let layer = new this.gisConstructor.GraphicsLayer({
-          id: '自定义标注图层',
-          title: '自定义标注图层',
-          spatialReference: this.MapView.spatialReference
-        })
-        this.Map.layers.add(layer)
+        // // 添加 3D 图层
+        // const sceneLayer = new this.gisConstructor.SceneLayer({
+        //   // portalItem: {
+        //   //   id: "2e0761b9a4274b8db52c4bf34356911e"
+        //   // },
+        //   url: "https://scene.arcgis.com/arcgis/rest/services/Hosted/Building_Hamburg/SceneServer/layers/0",
+        //   // url: 'http://server1041.esrichina.com/arcgisserver/rest/services/Hosted/Scene_JS_WSL1/SceneServer',
+        //   popupEnabled: false
+        // })
+        // console.log(sceneLayer)
+        // this.Map.add(sceneLayer)
 
-        // 添加 3D 图层
-        const sceneLayer = new this.gisConstructor.SceneLayer({
-          // portalItem: {
-          //   id: "2e0761b9a4274b8db52c4bf34356911e"
-          // },
-          url: "https://scene.arcgis.com/arcgis/rest/services/Hosted/Building_Hamburg/SceneServer/layers/0",
-          // url: 'http://server1041.esrichina.com/arcgisserver/rest/services/Hosted/Scene_JS_WSL1/SceneServer',
-          popupEnabled: false
+        // 如果有需要加载的地图服务
+        if (option.initLayers) {
+          this.addMapServer(option.initLayers)
+        }
+
+        // LayerList 小部件提供了一种显示图层列表以及打开/关闭它们的可见性的方法。ListItem API提供对每个层属性的访问，允许开发人员配置与该层相关的操作，并允许开发人员向与该层相关的项添加内容。
+        const layerList = new this.gisConstructor.LayerList({
+          view: this.MapView
         })
-        console.log(sceneLayer)
-        this.Map.add(sceneLayer)
+        // Adds widget below other elements in the top left corner of the view
+        this.MapView.ui.add(layerList, {
+          position: 'top-left'
+        })
+
+        // 移入事件（高亮效果）
+        this.pointMoveFun(this.Map.findLayerById('HighLightLayer'))
+
       })
+  }
+
+  // 移入事件（高亮效果）
+  pointMoveFun (layer) {
+    const _this = this
+    this.MapView.when(() => {
+      const graphic = {
+        popupTemplate: {
+          content: 'Mouse over features to show details...'
+        }
+      }
+      const feature = new this.gisConstructor.Feature({
+        container: 'feature-node',
+        graphic: graphic,
+        map: this.Map,
+        spatialReference: this.MapView.spatialReference
+      })
+
+      _this.MapView.whenLayerView(layer).then(function (layerView) {
+        let highlight
+        _this.MapView.on('pointer-move', function (event) {
+          _this.MapView.hitTest(event).then(function (event) {
+            const results = event.results.filter(function (result) {
+              return result
+            })
+            if (results.length > 0) {
+              const result = results[0]
+              // 固定弹窗内容
+              const popupTemplate = {
+                title: '{NAME}',
+                content: '<h1>{County}</h1><h1>{GEOID}</h1><h1>{State}</h1>'
+              }
+              const data = result.graphic.attributes
+              if (result.graphic.attributes) {
+                // 弹窗随鼠标移动
+                const data = result.graphic.attributes
+                _this.MapView.popup.open({
+                  title: data.NAME,
+                  content: '<h1>' + data.County + '</h1><h1>' + data.GEOID + '</h1><h1> ' + data.State + '</h1>',
+                  location: event.results[0].mapPoint
+                })
+              }
+              console.log(data)
+              layer.popupTemplate = popupTemplate
+              highlight && highlight.remove()
+              if (result) {
+                feature.graphic = result.graphic
+                highlight = layerView.highlight(result.graphic)
+              } else {
+                feature.graphic = graphic
+              }
+            }
+          })
+        })
+      })
+    })
+  }
+
+  // 设置图层显隐
+  changeLayerVisible (layers) {
+    // 测试
+    // [
+    //   'SF311',
+    //   'DamageAssessment'
+    // ]
+    layers.map(name => {
+      this.Map.findLayerById(name).visible = true
+    })
+  }
+
+  // 添加地图服务 
+  addMapServer (layers) {
+    layers.forEach(layer => {
+      if (layer.layerType === 'GraphicsLayer') {
+        // 存放自定义标注
+        this.Map.layers.add(new this.gisConstructor.GraphicsLayer({
+          id: layer.id,
+          title: layer.title,
+          visible: layer.visible
+        }))
+      } else if (layer.layerType === 'MapImageLayer') {
+        if (layer.sublayers) {
+          // 有子图层
+          this.Map.add(new this.gisConstructor.MapImageLayer({
+            id: layer.id,
+            url: layer.url,
+            layerId: layer.id,
+            sublayers: layer.sublayers,
+            visible: layer.visible,
+          }), layer.zIndex || 1)
+        } else {
+          this.Map.add(new this.gisConstructor.MapImageLayer({
+            id: layer.id,
+            url: layer.url,
+            layerId: layer.id,
+            visible: layer.visible,
+          }), layer.zIndex || 1)
+        }
+      } else if (layer.layerType === 'FeatureLayer') {
+        this.Map.add(new this.gisConstructor.FeatureLayer({
+          portalItem: layer.portalItem,
+          layerId: layer.id,
+          id: layer.id,
+          title: layer.title,
+          outFields: ['*'],
+          visible: layer.visible
+        }))
+      }
+    })
   }
 
   // 根据 layer ID 清除标注
