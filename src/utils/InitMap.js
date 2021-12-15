@@ -4,7 +4,7 @@ import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
 import {
   dependentFile,
-  extent
+  // extent
 } from '@/config/MapOptions'
 
 class ArcGIS {
@@ -15,7 +15,7 @@ class ArcGIS {
   }
 
   // 初始化
-  init ($el) {
+  init ($el, type) {
     esriLoader.loadCss(dependentFile.css)
     esriLoader.loadScript({
       url: dependentFile.script,
@@ -32,13 +32,20 @@ class ArcGIS {
         this.Map = new this.gisConstructor.Map({
           basemap: 'osm'
         })
-        this.MapView = new this.gisConstructor.MapView({
-          container: $el,
-          map: this.Map
-        })
-
+        if (type && type === '3D') {
+          this.MapView = new this.gisConstructor.SceneView({
+            container: $el, // Reference to the DOM node that will contain the view
+            map: this.Map, // References the map object created in step 3
+          })
+        }
+        else {
+          this.MapView = new this.gisConstructor.MapView({
+            container: $el,
+            map: this.Map
+          })
+        }
         // 设置视角区域
-        this.MapView.extent = new this.gisConstructor.Extent(extent, this.MapView.spatialReference)
+        // this.MapView.extent = new this.gisConstructor.Extent(extent, this.MapView.spatialReference)
 
         // 点击事件
         this.MapView.on('click', event => {
@@ -61,6 +68,18 @@ class ArcGIS {
           spatialReference: this.MapView.spatialReference
         })
         this.Map.layers.add(layer)
+
+        // 添加 3D 图层
+        const sceneLayer = new this.gisConstructor.SceneLayer({
+          // portalItem: {
+          //   id: "2e0761b9a4274b8db52c4bf34356911e"
+          // },
+          url: "https://scene.arcgis.com/arcgis/rest/services/Hosted/Building_Hamburg/SceneServer/layers/0",
+          // url: 'http://server1041.esrichina.com/arcgisserver/rest/services/Hosted/Scene_JS_WSL1/SceneServer',
+          popupEnabled: false
+        })
+        console.log(sceneLayer)
+        this.Map.add(sceneLayer)
       })
   }
 
