@@ -22,6 +22,11 @@
         @click="clearCustomSymbols()">清除标注</button>
     </div>
 
+    <div
+      id="child-map"
+      style="position:absolute;right:50px;bottom:50px;width:200px;height:200px">
+    </div>
+
     <!-- <div
       class="map-main">
       <router-view />
@@ -34,11 +39,13 @@ import {
   mapGetters
 } from 'vuex'
 import ArcGIS from '@/utils/InitMap'
+import InitMapChild from '@/utils/InitMapChild'
 export default {
   name: 'App',
   components: {},
   data () {
     return {
+      $ChildMap: null,
       $Map: null,
       routes: []
     }
@@ -61,6 +68,11 @@ export default {
     this.routes = this.$router.options.routes
     this.$Map = new ArcGIS()
     this.$Map.init('map-container')
+
+    // InitMapChild 继承 InitMap 中 ArcGIS 类
+    this.$ChildMap = new InitMapChild()
+    this.$ChildMap.init('child-map')
+
   },
   methods: {
     clearCustomSymbols () {
@@ -68,6 +80,18 @@ export default {
     },
     addCustomSymbols () {
       // 添加点
+      this.$ChildMap.addPointSymbols(
+        [
+          {
+            text: 'marker1',
+            x: -117.17144023442182,
+            y: 32.713787459203424,
+            type: 1,
+          },
+        ]
+      )
+      this.$ChildMap.extendFun()
+
       this.$Map.addPointSymbols(
         [
           {
