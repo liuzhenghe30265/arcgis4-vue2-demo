@@ -1,37 +1,37 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import InitMap from '@/components/InitMap'
-import CustomSymbols from '@/components/modules/CustomSymbols'
-import TrackPlayback from '@/components/modules/TrackPlayback'
-import HighLight from '@/components/modules/HighLight'
-import MapServer from '@/components/modules/MapServer'
-
 Vue.use(VueRouter)
 
-const routes = [{
+const routes = [
+  {
     path: '/',
     name: '初始化',
-    component: InitMap,
+    component: resolve => require(['@/components/index.vue'], resolve),
+  },
+  {
+    path: '/InitMap',
+    name: '初始化',
+    component: resolve => require(['@/components/modules/InitMap.vue'], resolve),
   },
   {
     path: '/CustomSymbols',
     name: '自定义标注',
-    component: CustomSymbols,
+    component: resolve => require(['@/components/modules/CustomSymbols.vue'], resolve),
   },
   {
     path: '/TrackPlayback',
     name: '轨迹回放',
-    component: TrackPlayback,
+    component: resolve => require(['@/components/modules/TrackPlayback.vue'], resolve),
   },
   {
     path: '/HighLight',
     name: '高亮',
-    component: HighLight,
+    component: resolve => require(['@/components/modules/HighLight.vue'], resolve),
   },
   {
     path: '/MapServer',
     name: 'MapServer',
-    component: MapServer,
+    component: resolve => require(['@/components/modules/MapServer.vue'], resolve),
   },
 ]
 
