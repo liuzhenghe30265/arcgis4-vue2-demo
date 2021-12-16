@@ -5,6 +5,7 @@ const ArcgisModules = [
   'esri/symbols/TextSymbol',
   'esri/widgets/LayerList',
   'esri/widgets/Feature',
+  'esri/WebScene', // 网络场景
   'esri/layers/ElevationLayer', // 加载地形高程的图层，应用在三维模式下显示
   'esri/layers/SceneLayer', // 加载三维场景图层，应用在三维模式下显示
   'esri/layers/TileLayer', // 加载缓存地图服务的瓦片图层，缓存的服务访问缓存中的瓦片，而不是动态地绘制图像。由于缓存机制，所以渲染的速度比 MapImageLayers 快多了，适合叠加瓦片切图使用，而不是前端动态渲染的

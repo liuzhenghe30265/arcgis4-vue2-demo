@@ -2,7 +2,7 @@
   <div>
     <div
       id="map-container"
-      style="width:100%;height:100%;">
+      style="width:100%;height:100%;position: fixed;">
     </div>
     <div
       style="position:absolute;right:50px;top:50px;z-index:999;">
@@ -10,6 +10,8 @@
         @click="addCustomSymbols()">自定义标注</button>
       <button
         @click="clearCustomSymbols()">清除标注</button>
+      <button
+        @click="goTo()">goto</button>
     </div>
   </div>
 </template>
@@ -57,16 +59,31 @@ export default {
       //   xmax: -117.15035189999998,
       //   ymax: 32.732100979999984,
       // },
-      extent: {
-        xmin: -178.217598382,
-        ymin: 18.921786345999976,
-        xmax: -66.96927110500002,
-        ymax: 71.40623554799998,
+      // extent: {
+      //   xmin: -178.217598382,
+      //   ymin: 18.921786345999976,
+      //   xmax: -66.96927110500002,
+      //   ymax: 71.40623554799998,
+      // },
+      camera: {
+        position: [-74.0338, 40.6913, 707], // New York
+        tilt: 81,
+        heading: 50
       },
       // center: [-74, 41.5],
       // zoom: 10,
       // 初始化地图时要加载的所有图层服务服务
       initLayers: [
+        {
+          portalItem: {
+            id: "2e0761b9a4274b8db52c4bf34356911e"
+          },
+          // url: "https://scene.arcgis.com/arcgis/rest/services/Hosted/Building_Hamburg/SceneServer/layers/0",
+          // url: 'http://server1041.esrichina.com/arcgisserver/rest/services/Hosted/Scene_JS_WSL1/SceneServer',
+          popupEnabled: false,
+          layerType: 'SceneServiceLayer',
+          visible: true
+        },
         {
           id: '自定义标注图层',
           title: '自定义标注图层',
@@ -74,7 +91,9 @@ export default {
           layerType: 'GraphicsLayer'
         },
         {
-          portalItem: { id: 'f430d25bf03744edbb1579e18c4bf6b8' },
+          portalItem: {
+            id: 'f430d25bf03744edbb1579e18c4bf6b8'
+          },
           layerId: 'HighLightLayer',
           id: 'HighLightLayer',
           title: '高亮',
@@ -128,6 +147,9 @@ export default {
     this.$Map.init(option)
   },
   methods: {
+    goTo () {
+      this.$Map.goTo()
+    },
     clearCustomSymbols () {
       this.$Map.clearSymbolsByLayerID('自定义标注图层')
     },
@@ -195,24 +217,9 @@ export default {
 </script>
 
 <style lang="scss">
-.nav {
-  position: fixed;
-  right: 20px;
-  top: 20px;
-  z-index: 999;
-  a {
-    color: #333;
-    &.router-link-exact-active {
-      color: red;
-    }
+.esri-view {
+  .esri-view-surface::after {
+    display: none;
   }
-}
-#map-container {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  bottom: 0;
 }
 </style>

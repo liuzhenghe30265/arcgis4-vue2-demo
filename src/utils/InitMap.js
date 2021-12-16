@@ -31,12 +31,22 @@ class ArcGIS {
         this.Map = new this.gisConstructor.Map({
           basemap: 'osm'
         })
+
+        // 添加一个场景地图作为底图
+        // const sceneMap = new this.gisConstructor.WebScene({
+        //   portalItem: { // autocasts as new PortalItem()
+        //     id: "affa021c51944b5694132b2d61fe1057"  // ID of the WebScene on arcgis.com
+        //   },
+        // })
+
         if (option.type && option.type === '3D') {
           this.MapView = new this.gisConstructor.SceneView({
             container: option.el, // Reference to the DOM node that will contain the view
             map: this.Map, // References the map object created in step 3
-            center: option.center,
-            zoom: option.zoom
+            // map: sceneMap,
+            camera: option.camera,
+            // center: option.center,
+            // zoom: option.zoom
           })
         }
         else {
@@ -66,18 +76,6 @@ class ArcGIS {
           })
         })
 
-        // // 添加 3D 图层
-        // const sceneLayer = new this.gisConstructor.SceneLayer({
-        //   // portalItem: {
-        //   //   id: "2e0761b9a4274b8db52c4bf34356911e"
-        //   // },
-        //   url: "https://scene.arcgis.com/arcgis/rest/services/Hosted/Building_Hamburg/SceneServer/layers/0",
-        //   // url: 'http://server1041.esrichina.com/arcgisserver/rest/services/Hosted/Scene_JS_WSL1/SceneServer',
-        //   popupEnabled: false
-        // })
-        // console.log(sceneLayer)
-        // this.Map.add(sceneLayer)
-
         // 如果有需要加载的地图服务
         if (option.initLayers) {
           this.addMapServer(option.initLayers)
@@ -93,9 +91,45 @@ class ArcGIS {
         })
 
         // 移入事件（高亮效果）
-        this.pointMoveFun(this.Map.findLayerById('HighLightLayer'))
+        // this.pointMoveFun(this.Map.findLayerById('HighLightLayer'))
 
       })
+  }
+
+  goTo () {
+    this.MapView.goTo(
+      {
+        position: {
+          x: 117.717534,
+          y: 39.011454,
+          z: 700000,
+          spatialReference: {
+            wkid: 4326
+          }
+        },
+        heading: 0,
+        tilt: 0
+      },
+      {
+        // speedFactor: 0.3, // 速度因子，默认1
+        // easing: this.customEasing // 缓动动画
+      }
+    )
+      .catch(this.catchAbortError)
+  }
+
+  catchAbortError (error) {
+    if (error.name != "AbortError") {
+      console.error(error)
+    }
+  }
+
+  // Define your own function for the easing option
+  customEasing (t) {
+    return (
+      1 -
+      Math.abs(Math.sin(-1.7 + t * 4.5 * Math.PI)) * Math.pow(0.5, t * 10)
+    );
   }
 
   // 移入事件（高亮效果）
@@ -168,41 +202,75 @@ class ArcGIS {
 
   // 添加地图服务 
   addMapServer (layers) {
-    layers.forEach(layer => {
-      if (layer.layerType === 'GraphicsLayer') {
+    layers.map(item => {
+      if (item.layerType === 'GraphicsLayer') {
         // 存放自定义标注
         this.Map.layers.add(new this.gisConstructor.GraphicsLayer({
-          id: layer.id,
-          title: layer.title,
-          visible: layer.visible
+          id: item.id,
+          title: item.title,
+          visible: item.visible
         }))
-      } else if (layer.layerType === 'MapImageLayer') {
-        if (layer.sublayers) {
+      } else if (item.layerType === 'MapImageLayer') {
+        if (item.sublayers) {
           // 有子图层
           this.Map.add(new this.gisConstructor.MapImageLayer({
-            id: layer.id,
-            url: layer.url,
-            layerId: layer.id,
-            sublayers: layer.sublayers,
-            visible: layer.visible,
-          }), layer.zIndex || 1)
+            id: item.id,
+            url: item.url,
+            layerId: item.id,
+            sublayers: item.sublayers,
+            visible: item.visible,
+          }), item.zIndex || 1)
         } else {
           this.Map.add(new this.gisConstructor.MapImageLayer({
-            id: layer.id,
-            url: layer.url,
-            layerId: layer.id,
-            visible: layer.visible,
-          }), layer.zIndex || 1)
+            id: item.id,
+            url: item.url,
+            layerId: item.id,
+            visible: item.visible,
+          }), item.zIndex || 1)
         }
-      } else if (layer.layerType === 'FeatureLayer') {
+      } else if (item.layerType === 'FeatureLayer') {
         this.Map.add(new this.gisConstructor.FeatureLayer({
-          portalItem: layer.portalItem,
-          layerId: layer.id,
-          id: layer.id,
-          title: layer.title,
+          portalItem: item.portalItem,
+          layerId: item.id,
+          id: item.id,
+          title: item.title,
           outFields: ['*'],
-          visible: layer.visible
+          visible: item.visible
         }))
+      } else if (item.layerType === 'SceneServiceLayer') {
+        if (item.portalItem) {
+          const layer = new this.gisConstructor.SceneLayer({
+            portalItem: item.portalItem,
+            popupEnabled: item.popupEnabled,
+            visible: item.visible
+          })
+          this.Map.add(layer)
+          // Create MeshSymbol3D for symbolizing SceneLayer
+          const symbol = {
+            type: "mesh-3d", // autocasts as new MeshSymbol3D()
+            symbolLayers: [
+              {
+                type: "fill", // autocasts as new FillSymbol3DLayer()
+                // If the value of material is not assigned, the default color will be grey
+                material: {
+                  color: [244, 247, 134]
+                }
+              }
+            ]
+          }
+          // Add the renderer to sceneLayer
+          layer.renderer = {
+            type: "simple", // autocasts as new SimpleRenderer()
+            symbol: symbol
+          }
+        } else if (item.url) {
+          const layer = new this.gisConstructor.SceneLayer({
+            url: item.url,
+            popupEnabled: item.popupEnabled,
+            visible: item.visible
+          })
+          this.Map.add(layer)
+        }
       }
     })
   }
