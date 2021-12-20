@@ -1,6 +1,8 @@
 // Arcgis 模块
 
 const ArcgisModules = [
+  'esri/widgets/Sketch', // Sketch小部件提供了一个简单的UI，用于在MapView或SceneView上创建和更新图形
+  'esri/widgets/Sketch/SketchViewModel',
   'esri/rest/support/ProjectParameters', // 投影参数（4.16 版本加载失败）
   'esri/tasks/GeometryService',
   'esri/Graphic',
@@ -145,6 +147,9 @@ class ArcgisFunction {
 
         // 移入事件（高亮效果）
         // this.pointMoveFun(this.Map.findLayerById('HighLightLayer'))
+
+        // 绘制工具
+        this.DrawingGraphics()
 
       })
   }
@@ -311,6 +316,8 @@ class ArcgisFunction {
       } else if (item.layerType === 'SceneServiceLayer') {
         if (item.portalItem) {
           const layer = new this.gisConstructor.SceneLayer({
+            id: item.id,
+            title: item.title,
             portalItem: item.portalItem,
             popupEnabled: item.popupEnabled,
             visible: item.visible
@@ -343,6 +350,45 @@ class ArcgisFunction {
           this.Map.add(layer)
         }
       }
+    })
+  }
+
+  // 绘制功能
+  DrawingGraphics () {
+    const sketchLayer = new this.gisConstructor.GraphicsLayer({
+      title: '绘制图层'
+    })
+    this.Map.add(sketchLayer)
+    this.MapView.when(() => {
+      const sketch = new this.gisConstructor.Sketch({
+        layer: sketchLayer,
+        view: this.MapView,
+        // graphic will be selected as soon as it is created
+        creationMode: "update"
+      })
+      this.MapView.ui.add(sketch, "top-left")
+      let sketchGeometry = null
+      sketch.on("create", (event) => {
+        if (event.state === "complete") {
+          sketchGeometry = event.graphic.geometry
+          console.log(sketchGeometry)
+          // const sceneLayerView = this.Map.findLayerById('纽约楼栋')
+          // const query = sceneLayerView.createQuery();
+          // query.geometry = sketchGeometry;
+          // query.distance = 500;
+          // query.units = "meters";
+          // query.spatialRelationship = "intersects";
+          // query.returnGeometry = true;
+          // console.log('queryyyyyyyyyyyyy', query)
+        }
+      })
+
+      sketch.on("update", (event) => {
+        if (event.state === "complete") {
+          sketchGeometry = event.graphics[0].geometry
+          console.log(sketchGeometry)
+        }
+      })
     })
   }
 

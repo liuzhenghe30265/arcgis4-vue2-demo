@@ -75,6 +75,8 @@ export default {
       // 初始化地图时要加载的所有图层服务服务
       initLayers: [
         {
+          id: '纽约楼栋',
+          title: '纽约楼栋',
           portalItem: {
             id: "2e0761b9a4274b8db52c4bf34356911e"
           },
