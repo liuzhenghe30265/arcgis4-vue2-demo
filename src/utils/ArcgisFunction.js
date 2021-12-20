@@ -1,6 +1,8 @@
 // Arcgis 模块
 
 const ArcgisModules = [
+  'esri/rest/support/ProjectParameters', // 投影参数（4.16 版本加载失败）
+  'esri/tasks/GeometryService',
   'esri/Graphic',
   'esri/symbols/TextSymbol',
   'esri/widgets/LayerList',
@@ -26,9 +28,6 @@ import store from '@/store/index'
 // import ArcgisModules from '@/utils/ArcgisModules'
 import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
-import {
-  dependentFile
-} from '@/config/MapOptions'
 
 class ArcgisFunction {
   constructor() {
@@ -39,9 +38,9 @@ class ArcgisFunction {
 
   // 初始化
   init (option) {
-    esriLoader.loadCss(dependentFile.css)
+    esriLoader.loadCss('https://js.arcgis.com/4.22/esri/themes/light/main.css')
     esriLoader.loadScript({
-      url: dependentFile.script,
+      url: 'https://js.arcgis.com/4.22/init.js',
       dojoConfig: {
         async: false,
       }
@@ -79,7 +78,7 @@ class ArcgisFunction {
             map: this.Map
           })
         }
-        
+
         // 设置视角区域
         if (option.extent) {
           this.MapView.extent = new this.gisConstructor.Extent(option.extent, this.MapView.spatialReference)
@@ -99,6 +98,10 @@ class ArcgisFunction {
               store.dispatch('map/getMapMarkerClickData', response)
             }
           })
+
+          // 坐标转换
+          this.coordinateTran(event)
+
         })
 
         // 如果有需要加载的地图服务
@@ -110,9 +113,9 @@ class ArcgisFunction {
         const layer = this.Map.findLayerById('自定义标注图层')
         const point = {
           type: 'point', // autocasts as new Point()
-          x: -74.0338,
-          y: 40.6913,
-          z: 200
+          x: -73.98221631859681,
+          y: 40.70871256176741,
+          z: 0
         }
         const treeSymbol = {
           type: "point-3d",
@@ -121,7 +124,7 @@ class ArcgisFunction {
             resource: {
               href: "https://jsapi.maps.arcgis.com/sharing/rest/content/items/4418035fa87d44f490d5bf27a579e118/resources/styles/web/resource/tree.json"
             },
-            height: 800,
+            height: 400,
             anchor: "bottom"
           }]
         }
@@ -144,6 +147,23 @@ class ArcgisFunction {
         // this.pointMoveFun(this.Map.findLayerById('HighLightLayer'))
 
       })
+  }
+
+  // 坐标转换
+  coordinateTran (e) {
+    // 使用 GeometryService 转换坐标
+    let params = new this.gisConstructor.ProjectParameters()
+    params.geometries = [
+      e.mapPoint
+      // new this.gisConstructor.Point(691599.4485598434, 3088605.79325086, new this.gisConstructor.SpatialReference({ wkid: 32649 }))
+    ] // 输入
+    params.outSpatialReference = new this.gisConstructor.SpatialReference({
+      wkid: 4326
+    }) // 输出
+    let geometryService = new this.gisConstructor.GeometryService('https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer')
+    geometryService.project(params).then(function (result) {
+      console.log('经纬度：' + result[0].x + ',' + result[0].y)
+    })
   }
 
   goTo (position) {
