@@ -1,12 +1,36 @@
+// Arcgis 模块
+
+const ArcgisModules = [
+  'esri/Graphic',
+  'esri/symbols/TextSymbol',
+  'esri/widgets/LayerList',
+  'esri/widgets/Feature',
+  'esri/WebScene', // 网络场景
+  'esri/layers/ElevationLayer', // 加载地形高程的图层，应用在三维模式下显示
+  'esri/layers/SceneLayer', // 加载三维场景图层，应用在三维模式下显示
+  'esri/layers/TileLayer', // 加载缓存地图服务的瓦片图层，缓存的服务访问缓存中的瓦片，而不是动态地绘制图像。由于缓存机制，所以渲染的速度比 MapImageLayers 快多了，适合叠加瓦片切图使用，而不是前端动态渲染的
+  'esri/layers/MapImageLayer', // 允许显示和分析在一个地图服务定义层数据，输出图像代替特征。地图服务图像是根据请求动态生成的。
+  'esri/layers/FeatureLayer',
+  'esri/layers/GraphicsLayer',
+  "esri/geometry/Point",
+  'esri/geometry/SpatialReference',
+  'esri/geometry/Extent',
+  'esri/views/SceneView',
+  'esri/views/MapView',
+  'esri/Map',
+]
+
+// export default ArcgisModules
+
 import store from '@/store/index'
-import ArcgisModules from '@/utils/ArcgisModules'
+// import ArcgisModules from '@/utils/ArcgisModules'
 import esriLoader from 'esri-loader'
 import { loadModules } from 'esri-loader'
 import {
   dependentFile
 } from '@/config/MapOptions'
 
-class ArcGIS {
+class ArcgisFunction {
   constructor() {
     this.Map = null
     this.MapView = null
@@ -55,6 +79,7 @@ class ArcGIS {
             map: this.Map
           })
         }
+        
         // 设置视角区域
         if (option.extent) {
           this.MapView.extent = new this.gisConstructor.Extent(option.extent, this.MapView.spatialReference)
@@ -80,6 +105,31 @@ class ArcGIS {
         if (option.initLayers) {
           this.addMapServer(option.initLayers)
         }
+
+        // 测试 json 模型
+        const layer = this.Map.findLayerById('自定义标注图层')
+        const point = {
+          type: 'point', // autocasts as new Point()
+          x: -74.0338,
+          y: 40.6913,
+          z: 200
+        }
+        const treeSymbol = {
+          type: "point-3d",
+          symbolLayers: [{
+            type: "object",
+            resource: {
+              href: "https://jsapi.maps.arcgis.com/sharing/rest/content/items/4418035fa87d44f490d5bf27a579e118/resources/styles/web/resource/tree.json"
+            },
+            height: 800,
+            anchor: "bottom"
+          }]
+        }
+        const treeGraphic = new this.gisConstructor.Graphic({
+          geometry: point,
+          symbol: treeSymbol
+        })
+        layer.add(treeGraphic)
 
         // LayerList 小部件提供了一种显示图层列表以及打开/关闭它们的可见性的方法。ListItem API提供对每个层属性的访问，允许开发人员配置与该层相关的操作，并允许开发人员向与该层相关的项添加内容。
         const layerList = new this.gisConstructor.LayerList({
@@ -463,4 +513,4 @@ class ArcGIS {
 
 }
 
-export default ArcGIS
+export default ArcgisFunction

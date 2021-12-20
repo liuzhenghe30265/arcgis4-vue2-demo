@@ -20,7 +20,7 @@
 import {
   mapGetters
 } from 'vuex'
-import ArcGIS from '@/utils/InitMap'
+import ArcgisFunction from '@/utils/ArcgisFunction'
 export default {
   name: 'App',
   components: {},
@@ -47,7 +47,7 @@ export default {
   },
   mounted () {
     this.routes = this.$router.options.routes
-    this.$Map = new ArcGIS()
+    this.$Map = new ArcgisFunction()
 
     const option = {
       el: 'map-container',
