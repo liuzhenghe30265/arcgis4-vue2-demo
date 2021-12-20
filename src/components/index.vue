@@ -148,12 +148,32 @@ export default {
   },
   methods: {
     goTo () {
-      this.$Map.goTo()
+      this.$Map.goTo(
+        {
+          x: 117.717534,
+          y: 39.011454,
+          z: 700000,
+          spatialReference: {
+            wkid: 4326
+          }
+        }
+      )
     },
     clearCustomSymbols () {
       this.$Map.clearSymbolsByLayerID('自定义标注图层')
     },
     addCustomSymbols () {
+      this.$Map.goTo(
+        {
+          x: -117.17144023442182,
+          y: 32.713787459203424,
+          z: 700000,
+          spatialReference: {
+            wkid: 4326
+          }
+        }
+      )
+
       // 添加点
       this.$Map.addPointSymbols(
         [

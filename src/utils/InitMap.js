@@ -96,17 +96,18 @@ class ArcGIS {
       })
   }
 
-  goTo () {
+  goTo (position) {
     this.MapView.goTo(
       {
-        position: {
-          x: 117.717534,
-          y: 39.011454,
-          z: 700000,
-          spatialReference: {
-            wkid: 4326
-          }
-        },
+        position: position,
+        // position: {
+        //   x: 117.717534,
+        //   y: 39.011454,
+        //   z: 700000,
+        //   spatialReference: {
+        //     wkid: 4326
+        //   }
+        // },
         heading: 0,
         tilt: 0
       },
