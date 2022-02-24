@@ -1,5 +1,4 @@
 // Arcgis 模块
-
 const ArcgisModules = [
   'esri/widgets/Sketch', // Sketch小部件提供了一个简单的UI，用于在MapView或SceneView上创建和更新图形
   'esri/widgets/Sketch/SketchViewModel',
@@ -16,12 +15,12 @@ const ArcgisModules = [
   'esri/layers/MapImageLayer', // 允许显示和分析在一个地图服务定义层数据，输出图像代替特征。地图服务图像是根据请求动态生成的。
   'esri/layers/FeatureLayer',
   'esri/layers/GraphicsLayer',
-  "esri/geometry/Point",
+  'esri/geometry/Point',
   'esri/geometry/SpatialReference',
   'esri/geometry/Extent',
   'esri/views/SceneView',
   'esri/views/MapView',
-  'esri/Map',
+  'esri/Map'
 ]
 
 // export default ArcgisModules
@@ -44,13 +43,13 @@ class ArcgisFunction {
     esriLoader.loadScript({
       url: 'https://js.arcgis.com/4.22/init.js',
       dojoConfig: {
-        async: false,
+        async: false
       }
     })
     loadModules(ArcgisModules)
       .then((args) => {
-        for (let k in args) {
-          let name = ArcgisModules[k].split('/').pop()
+        for (const k in args) {
+          const name = ArcgisModules[k].split('/').pop()
           this.gisConstructor[name] = args[k]
         }
         this.Map = new this.gisConstructor.Map({
@@ -69,12 +68,11 @@ class ArcgisFunction {
             container: option.el, // Reference to the DOM node that will contain the view
             map: this.Map, // References the map object created in step 3
             // map: sceneMap,
-            camera: option.camera,
+            camera: option.camera
             // center: option.center,
             // zoom: option.zoom
           })
-        }
-        else {
+        } else {
           this.MapView = new this.gisConstructor.MapView({
             container: option.el,
             map: this.Map
@@ -103,15 +101,12 @@ class ArcgisFunction {
 
           // 坐标转换
           this.coordinateTran(event)
-
         })
 
-        // 如果有需要加载的地图服务
-        if (option.initLayers) {
-          this.addMapServer(option.initLayers)
-        }
+        // 初始化时添加图层服务
+        this.addCustomLayers()
 
-        // 测试 json 模型
+        // 添加模型模型
         const layer = this.Map.findLayerById('自定义标注图层')
         const point = {
           type: 'point', // autocasts as new Point()
@@ -120,14 +115,14 @@ class ArcgisFunction {
           z: 0
         }
         const treeSymbol = {
-          type: "point-3d",
+          type: 'point-3d',
           symbolLayers: [{
-            type: "object",
+            type: 'object',
             resource: {
-              href: "https://jsapi.maps.arcgis.com/sharing/rest/content/items/4418035fa87d44f490d5bf27a579e118/resources/styles/web/resource/tree.json"
+              href: 'https://jsapi.maps.arcgis.com/sharing/rest/content/items/4418035fa87d44f490d5bf27a579e118/resources/styles/web/resource/tree.json'
             },
             height: 400,
-            anchor: "bottom"
+            anchor: 'bottom'
           }]
         }
         const treeGraphic = new this.gisConstructor.Graphic({
@@ -150,14 +145,121 @@ class ArcgisFunction {
 
         // 绘制工具
         this.DrawingGraphics()
-
       })
+  }
+
+  // 添加自定义图层
+  addCustomLayers () {
+    // layer.visible 设置显隐
+
+    // 存放自定义标注
+    this.Map.layers.add(new this.gisConstructor.GraphicsLayer({
+      id: '自定义标注图层',
+      title: '自定义标注图层',
+      visible: false
+    }))
+
+    // 单个图层（第二个参数是层级）
+    this.Map.add(new this.gisConstructor.MapImageLayer({
+      id: 'SF311',
+      layerId: 'SF311',
+      title: 'SF311',
+      url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/SF311/MapServer',
+      visible: false
+    }), 1)
+    this.Map.add(new this.gisConstructor.MapImageLayer({
+      id: 'DamageAssessment',
+      layerId: 'DamageAssessment',
+      title: 'DamageAssessment',
+      url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/DamageAssessment/MapServer',
+      visible: false
+    }))
+
+    // 有子图层
+    // 设置图层显隐时通过 layer.items 获取到所有子图层，循环，单独设置 layer.visible
+    this.Map.add(new this.gisConstructor.MapImageLayer({
+      id: 'USA',
+      layerId: 'USA',
+      title: 'USA',
+      url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer',
+      sublayers: [
+        {
+          id: 0,
+          title: 'Cities',
+          visible: false
+        },
+        {
+          id: 1,
+          title: 'Highways',
+          visible: false
+        },
+        {
+          id: 2,
+          title: 'States',
+          visible: false
+        },
+        {
+          id: 3,
+          title: 'Counties',
+          visible: false
+        }
+      ]
+    }))
+
+    // 功能图层，加载服务
+    this.Map.add(new this.gisConstructor.FeatureLayer({
+      portalItem: {
+        id: 'f430d25bf03744edbb1579e18c4bf6b8'
+      },
+      layerId: 'FeatureLayer',
+      id: 'FeatureLayer',
+      title: 'FeatureLayer（带高亮效果）',
+      outFields: ['*'],
+      visible: false
+    }))
+
+    // 三维场景服务（portalItem）
+    const layer = new this.gisConstructor.SceneLayer({
+      id: '纽约楼栋',
+      title: '纽约楼栋',
+      portalItem: {
+        id: '2e0761b9a4274b8db52c4bf34356911e'
+      },
+      popupEnabled: false,
+      visible: false
+    })
+    // Create MeshSymbol3D for symbolizing SceneLayer
+    const symbol = {
+      type: 'mesh-3d', // autocasts as new MeshSymbol3D()
+      symbolLayers: [
+        {
+          type: 'fill', // autocasts as new FillSymbol3DLayer()
+          // If the value of material is not assigned, the default color will be grey
+          material: {
+            color: [244, 247, 134]
+          }
+        }
+      ]
+    }
+    // Add the renderer to sceneLayer
+    layer.renderer = {
+      type: 'simple', // autocasts as new SimpleRenderer()
+      symbol: symbol
+    }
+    this.Map.add(layer)
+
+    // 三维场景服务（url）
+    // this.Map.add(new this.gisConstructor.SceneLayer({
+    //   url: '',
+    //   popupEnabled: true,
+    //   visible: false
+    // }))
   }
 
   // 坐标转换
   coordinateTran (e) {
     // 使用 GeometryService 转换坐标
-    let params = new this.gisConstructor.ProjectParameters()
+    const params = new this.gisConstructor.ProjectParameters()
     params.geometries = [
       e.mapPoint
       // new this.gisConstructor.Point(691599.4485598434, 3088605.79325086, new this.gisConstructor.SpatialReference({ wkid: 32649 }))
@@ -165,7 +267,7 @@ class ArcgisFunction {
     params.outSpatialReference = new this.gisConstructor.SpatialReference({
       wkid: 4326
     }) // 输出
-    let geometryService = new this.gisConstructor.GeometryService('https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer')
+    const geometryService = new this.gisConstructor.GeometryService('https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer')
     geometryService.project(params).then(function (result) {
       console.log('经纬度：' + result[0].x + ',' + result[0].y)
     })
@@ -195,7 +297,7 @@ class ArcgisFunction {
   }
 
   catchAbortError (error) {
-    if (error.name != "AbortError") {
+    if (error.name !== 'AbortError') {
       console.error(error)
     }
   }
@@ -205,7 +307,7 @@ class ArcgisFunction {
     return (
       1 -
       Math.abs(Math.sin(-1.7 + t * 4.5 * Math.PI)) * Math.pow(0.5, t * 10)
-    );
+    )
   }
 
   // 移入事件（高亮效果）
@@ -276,7 +378,7 @@ class ArcgisFunction {
     })
   }
 
-  // 添加地图服务 
+  // 添加地图服务
   addMapServer (layers) {
     layers.map(item => {
       if (item.layerType === 'GraphicsLayer') {
@@ -294,14 +396,14 @@ class ArcgisFunction {
             url: item.url,
             layerId: item.id,
             sublayers: item.sublayers,
-            visible: item.visible,
+            visible: item.visible
           }), item.zIndex || 1)
         } else {
           this.Map.add(new this.gisConstructor.MapImageLayer({
             id: item.id,
             url: item.url,
             layerId: item.id,
-            visible: item.visible,
+            visible: item.visible
           }), item.zIndex || 1)
         }
       } else if (item.layerType === 'FeatureLayer') {
@@ -325,10 +427,10 @@ class ArcgisFunction {
           this.Map.add(layer)
           // Create MeshSymbol3D for symbolizing SceneLayer
           const symbol = {
-            type: "mesh-3d", // autocasts as new MeshSymbol3D()
+            type: 'mesh-3d', // autocasts as new MeshSymbol3D()
             symbolLayers: [
               {
-                type: "fill", // autocasts as new FillSymbol3DLayer()
+                type: 'fill', // autocasts as new FillSymbol3DLayer()
                 // If the value of material is not assigned, the default color will be grey
                 material: {
                   color: [244, 247, 134]
@@ -338,7 +440,7 @@ class ArcgisFunction {
           }
           // Add the renderer to sceneLayer
           layer.renderer = {
-            type: "simple", // autocasts as new SimpleRenderer()
+            type: 'simple', // autocasts as new SimpleRenderer()
             symbol: symbol
           }
         } else if (item.url) {
@@ -364,12 +466,12 @@ class ArcgisFunction {
         layer: sketchLayer,
         view: this.MapView,
         // graphic will be selected as soon as it is created
-        creationMode: "update"
+        creationMode: 'update'
       })
-      this.MapView.ui.add(sketch, "top-left")
+      this.MapView.ui.add(sketch, 'top-left')
       let sketchGeometry = null
-      sketch.on("create", (event) => {
-        if (event.state === "complete") {
+      sketch.on('create', (event) => {
+        if (event.state === 'complete') {
           sketchGeometry = event.graphic.geometry
           console.log(sketchGeometry)
           // const sceneLayerView = this.Map.findLayerById('纽约楼栋')
@@ -383,8 +485,8 @@ class ArcgisFunction {
         }
       })
 
-      sketch.on("update", (event) => {
-        if (event.state === "complete") {
+      sketch.on('update', (event) => {
+        if (event.state === 'complete') {
           sketchGeometry = event.graphics[0].geometry
           console.log(sketchGeometry)
         }
@@ -395,7 +497,7 @@ class ArcgisFunction {
   // 根据 layer ID 清除标注
   clearSymbolsByLayerID (ID) {
     this.Map.findLayerById(ID) ? (() => {
-      let layer = this.Map.findLayerById(ID)
+      const layer = this.Map.findLayerById(ID)
       layer.removeAll()
     })() : void (0)
   }
@@ -417,63 +519,63 @@ class ArcgisFunction {
       } else {
         icon = require('@/assets/images/ico03.png')
       }
-      let point = {
-        type: "point",
+      const point = {
+        type: 'point',
         longitude: item.x,
-        latitude: item.y,
+        latitude: item.y
         // spatialReference: this.MapView.spatialReference
       }
-      let simpleMarker = {
-        type: "simple-marker",
+      const simpleMarker = {
+        type: 'simple-marker',
         color: [226, 119, 40],
         outline: {
           color: [255, 255, 255],
           width: 2
-        },
+        }
         // spatialReference: this.MapView.spatialReference
       }
-      let simpleMarkerGraphic = new this.gisConstructor.Graphic({
+      const simpleMarkerGraphic = new this.gisConstructor.Graphic({
         geometry: point,
         attributes: item,
-        symbol: simpleMarker,
+        symbol: simpleMarker
         // spatialReference: this.MapView.spatialReference
       })
       layer.add(simpleMarkerGraphic)
 
-      let pictureMarker = {
-        type: "picture-marker",
+      const pictureMarker = {
+        type: 'picture-marker',
         url: icon,
-        width: "32px",
-        height: "32px",
-        xoffset: "0",
-        yoffset: "25px"
+        width: '32px',
+        height: '32px',
+        xoffset: '0',
+        yoffset: '25px'
       }
-      let pictureGraphic = new this.gisConstructor.Graphic({
+      const pictureGraphic = new this.gisConstructor.Graphic({
         geometry: point,
         attributes: item,
-        symbol: pictureMarker,
+        symbol: pictureMarker
         // spatialReference: this.MapView.spatialReference
       })
       layer.add(pictureGraphic)
 
-      let textSymbol = {
-        type: "text",
-        color: "white",
-        haloColor: "black",
-        haloSize: "1px",
+      const textSymbol = {
+        type: 'text',
+        color: 'white',
+        haloColor: 'black',
+        haloSize: '1px',
         text: item.text,
         xoffset: 0,
         yoffset: -25,
         font: {
           size: 12,
-          family: "Josefin Slab",
-          weight: "bold"
+          family: 'Josefin Slab',
+          weight: 'bold'
         }
       }
-      let textGraphic = new this.gisConstructor.Graphic({
+      const textGraphic = new this.gisConstructor.Graphic({
         geometry: point,
         attributes: item,
-        symbol: textSymbol,
+        symbol: textSymbol
         // spatialReference: this.MapView.spatialReference
       })
       layer.add(textGraphic)
@@ -485,39 +587,39 @@ class ArcgisFunction {
   // 添加线标注
   addPolylineSymbols (data) {
     const layer = this.Map.findLayerById('自定义标注图层')
-    let polyline = {
-      type: "polyline",
+    const polyline = {
+      type: 'polyline',
       paths: data
     }
-    let polylineSymbol = {
-      type: "simple-line",
+    const polylineSymbol = {
+      type: 'simple-line',
       color: [255, 0, 0],
       width: 4
     }
-    let polylineAtt = {
-      Name: "Keystone Pipeline",
-      Owner: "TransCanada",
-      Length: "3,456 km"
+    const polylineAtt = {
+      Name: 'Keystone Pipeline',
+      Owner: 'TransCanada',
+      Length: '3,456 km'
     }
-    let polylineGraphic = new this.gisConstructor.Graphic({
+    const polylineGraphic = new this.gisConstructor.Graphic({
       geometry: polyline,
       symbol: polylineSymbol,
       attributes: polylineAtt,
       // 高亮提示效果
       popupTemplate: {
-        title: "{Name}",
+        title: '{Name}',
         content: [
           {
-            type: "fields",
+            type: 'fields',
             fieldInfos: [
               {
-                fieldName: "Name"
+                fieldName: 'Name'
               },
               {
-                fieldName: "Owner"
+                fieldName: 'Owner'
               },
               {
-                fieldName: "Length"
+                fieldName: 'Length'
               }
             ]
           }
@@ -530,42 +632,42 @@ class ArcgisFunction {
   // 添加面
   addPolygonSymbols (data) {
     const layer = this.Map.findLayerById('自定义标注图层')
-    let polygon = {
-      type: "polygon",
+    const polygon = {
+      type: 'polygon',
       rings: data
     }
-    let polygonSymbol = {
-      type: "simple-fill",
+    const polygonSymbol = {
+      type: 'simple-fill',
       color: [227, 139, 79, 0.8],
       outline: {
         color: [255, 255, 255],
         width: 4
       }
     }
-    let polygonAtt = {
-      Name: "Keystone Polygon",
-      Owner: "TransCanada",
-      Area: "50²km"
+    const polygonAtt = {
+      Name: 'Keystone Polygon',
+      Owner: 'TransCanada',
+      Area: '50²km'
     }
-    let polygonGraphic = new this.gisConstructor.Graphic({
+    const polygonGraphic = new this.gisConstructor.Graphic({
       geometry: polygon,
       symbol: polygonSymbol,
       attributes: polygonAtt,
       // 高亮提示效果
       popupTemplate: {
-        title: "{Name}",
+        title: '{Name}',
         content: [
           {
-            type: "fields",
+            type: 'fields',
             fieldInfos: [
               {
-                fieldName: "Name"
+                fieldName: 'Name'
               },
               {
-                fieldName: "Owner"
+                fieldName: 'Owner'
               },
               {
-                fieldName: "Area"
+                fieldName: 'Area'
               }
             ]
           }
@@ -574,9 +676,6 @@ class ArcgisFunction {
     })
     layer.add(polygonGraphic)
   }
-
-
-
 }
 
 export default ArcgisFunction
