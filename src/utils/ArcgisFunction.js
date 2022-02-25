@@ -156,7 +156,7 @@ class ArcgisFunction {
     this.Map.layers.add(new this.gisConstructor.GraphicsLayer({
       id: '自定义标注图层',
       title: '自定义标注图层',
-      visible: false
+      visible: true
     }))
 
     // 单个图层（第二个参数是层级）
@@ -378,83 +378,6 @@ class ArcgisFunction {
     })
   }
 
-  // 添加地图服务
-  addMapServer (layers) {
-    layers.map(item => {
-      if (item.layerType === 'GraphicsLayer') {
-        // 存放自定义标注
-        this.Map.layers.add(new this.gisConstructor.GraphicsLayer({
-          id: item.id,
-          title: item.title,
-          visible: item.visible
-        }))
-      } else if (item.layerType === 'MapImageLayer') {
-        if (item.sublayers) {
-          // 有子图层
-          this.Map.add(new this.gisConstructor.MapImageLayer({
-            id: item.id,
-            url: item.url,
-            layerId: item.id,
-            sublayers: item.sublayers,
-            visible: item.visible
-          }), item.zIndex || 1)
-        } else {
-          this.Map.add(new this.gisConstructor.MapImageLayer({
-            id: item.id,
-            url: item.url,
-            layerId: item.id,
-            visible: item.visible
-          }), item.zIndex || 1)
-        }
-      } else if (item.layerType === 'FeatureLayer') {
-        this.Map.add(new this.gisConstructor.FeatureLayer({
-          portalItem: item.portalItem,
-          layerId: item.id,
-          id: item.id,
-          title: item.title,
-          outFields: ['*'],
-          visible: item.visible
-        }))
-      } else if (item.layerType === 'SceneServiceLayer') {
-        if (item.portalItem) {
-          const layer = new this.gisConstructor.SceneLayer({
-            id: item.id,
-            title: item.title,
-            portalItem: item.portalItem,
-            popupEnabled: item.popupEnabled,
-            visible: item.visible
-          })
-          this.Map.add(layer)
-          // Create MeshSymbol3D for symbolizing SceneLayer
-          const symbol = {
-            type: 'mesh-3d', // autocasts as new MeshSymbol3D()
-            symbolLayers: [
-              {
-                type: 'fill', // autocasts as new FillSymbol3DLayer()
-                // If the value of material is not assigned, the default color will be grey
-                material: {
-                  color: [244, 247, 134]
-                }
-              }
-            ]
-          }
-          // Add the renderer to sceneLayer
-          layer.renderer = {
-            type: 'simple', // autocasts as new SimpleRenderer()
-            symbol: symbol
-          }
-        } else if (item.url) {
-          const layer = new this.gisConstructor.SceneLayer({
-            url: item.url,
-            popupEnabled: item.popupEnabled,
-            visible: item.visible
-          })
-          this.Map.add(layer)
-        }
-      }
-    })
-  }
-
   // 绘制功能
   DrawingGraphics () {
     const sketchLayer = new this.gisConstructor.GraphicsLayer({
@@ -508,6 +431,7 @@ class ArcgisFunction {
   }
 
   // 添加点标注
+  // https://developers.arcgis.com/javascript/latest/api-reference/esri-geometry-Point.html
   addPointSymbols (data) {
     const layer = this.Map.findLayerById('自定义标注图层')
     let icon = ''
@@ -582,6 +506,33 @@ class ArcgisFunction {
 
       // layer.addMany([]) // 多个点，Array 类型
     })
+  }
+
+  // 添加三维点
+  add3DPointSymbols () {
+    const layer = this.Map.findLayerById('自定义标注图层')
+    const graphic = new this.gisConstructor.Graphic(
+      {
+        geometry: {
+          type: 'point',
+          x: 7.029608745378372,
+          y: 8.411554571297769,
+          z: 1000
+        },
+        attributes: {
+          name: '3D点'
+        },
+        symbol: {
+          type: 'picture-marker',
+          url: require('@/assets/images/ico03.png'),
+          width: '32px',
+          height: '32px',
+          xoffset: '0',
+          yoffset: '25px'
+        }
+      }
+    )
+    layer.add(graphic)
   }
 
   // 添加线标注

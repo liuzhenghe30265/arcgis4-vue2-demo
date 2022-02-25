@@ -11,6 +11,8 @@
       <button
         @click="addCustomSymbols()">自定义标注</button>
       <button
+        @click="add3DSymbols()">三维标注</button>
+      <button
         @click="clearCustomSymbols()">清除标注</button>
       <button
         @click="goTo()">goto</button>
@@ -85,6 +87,9 @@ export default {
     })
   },
   methods: {
+    add3DSymbols () {
+      this.$Map.add3DPointSymbols()
+    },
     goTo () {
       this.$Map.goTo(
         {
@@ -119,6 +124,7 @@ export default {
             text: 'marker1',
             x: -117.17144023442182,
             y: 32.713787459203424,
+            z: 1000,
             type: 1
           },
           {
