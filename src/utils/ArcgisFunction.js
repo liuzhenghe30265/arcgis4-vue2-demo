@@ -53,7 +53,7 @@ class ArcgisFunction {
           this.gisConstructor[name] = args[k]
         }
         this.Map = new this.gisConstructor.Map({
-          basemap: 'osm'
+          basemap: 'hybrid'
         })
 
         // 添加一个场景地图作为底图

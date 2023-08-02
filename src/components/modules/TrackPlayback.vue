@@ -1,13 +1,3 @@
-/* eslint-disable no-unused-vars */
-<!--
- * @Author: liuzhenghe
- * @Email: 15901450207@163.com
- * @Date: 2020-07-29 16:36:28
- * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-08-07 18:16:04
- * @Descripttion: 轨迹回放
---> 
-
 <template>
   <div id="map-container"
     style="width:100%;height:100%;">
@@ -277,7 +267,7 @@ export default {
         this.gisConstructor[name] = args[k]
       }
       this.map = new this.gisConstructor.Map({
-        basemap: 'osm'
+        basemap: 'hybrid'
       })
       this.MapView = new this.gisConstructor.MapView({
         container: 'map-container',

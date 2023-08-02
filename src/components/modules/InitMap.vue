@@ -1,15 +1,5 @@
-<!--
- * @Author: liuzhenghe
- * @Email: 15901450207@163.com
- * @Date: 2020-07-28 17:44:30
- * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-12-22 18:12:32
- * @Descripttion: 初始化地图
--->
-
 <template>
-  <div id="map-container"
-       style="width:100%;height:100%;">
+  <div id="map-container" style="width:100%;height:100%;">
   </div>
 </template>
 <script>
@@ -70,7 +60,7 @@ export default {
       }
 
       this.map = new this.gisConstructor.Map({
-        basemap: "osm",
+        basemap: "hybrid",
       })
       this.MapView = new this.gisConstructor.MapView({
         container: "map-container",

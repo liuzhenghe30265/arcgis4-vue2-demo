@@ -1,12 +1,3 @@
-<!--
- * @Author: liuzhenghe
- * @Email: liuzhenghe@btzh.cn
- * @Date: 2020-10-09 14:01:07
- * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-10-09 17:11:58
- * @Descripttion: 高亮效果
--->
-
 <template>
   <div id="map-container"
        style="width:100%;height:100%;">
@@ -72,7 +63,7 @@ export default {
         this.gisConstructor[name] = args[k]
       }
       this.map = new this.gisConstructor.Map({
-        basemap: 'osm'
+        basemap: 'hybrid'
       })
 
       this.MapView = new this.gisConstructor.MapView({

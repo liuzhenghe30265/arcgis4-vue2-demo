@@ -1,34 +1,13 @@
-<!--
- * @Author: liuzhenghe
- * @Email: liuzhenghe@btzh.cn
- * @Date: 2020-10-09 14:01:07
- * @LastEditors: liuzhenghe
- * @LastEditTime: 2020-10-10 10:37:52
- * @Descripttion: MapServer
--->
-
 <template>
-  <div id="map-container"
-       style="width:100%;height:100%;">
-    <div
-         style="position:absolute;right:50px;top:50px;z-index:999;width:200px;">
-      <el-tree :data="treeData2"
-               show-checkbox
-               node-key="id"
-               @check-change="handleCheckChange2"
-               ref="tree2"
-               highlight-current>
+  <div id="map-container" style="width:100%;height:100%;">
+    <div style="position:absolute;right:50px;top:50px;z-index:999;width:200px;">
+      <el-tree :data="treeData2" show-checkbox node-key="id" @check-change="handleCheckChange2" ref="tree2"
+        highlight-current>
       </el-tree>
       <hr>
-      <el-tree :data="treeData"
-               :props="defaultProps"
-               show-checkbox
-               node-key="id"
-               @check-change="handleCheckChange"
-               ref="tree"
-               highlight-current>
+      <el-tree :data="treeData" :props="defaultProps" show-checkbox node-key="id" @check-change="handleCheckChange"
+        ref="tree" highlight-current>
       </el-tree>
-
     </div>
   </div>
 </template>
@@ -210,7 +189,7 @@ export default {
         this.gisConstructor[name] = args[k]
       }
       this.map = new this.gisConstructor.Map({
-        basemap: 'osm'
+        basemap: 'hybrid'
       })
 
       this.MapView = new this.gisConstructor.MapView({
